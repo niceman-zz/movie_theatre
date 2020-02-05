@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+ 		http://www.springframework.org/schema/beans
+ 		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+    <bean id="birthdayDiscountStrategy" class="com.epam.spring.discount.BirthdayDiscountStrategy">
+        <property name="discount" value="5"/>
+        <property name="discountThreshold" value="5"/>
+        <property name="discountAll" value="true"/>
+    </bean>
+    <bean id="packageDiscountStrategy" class="com.epam.spring.discount.PackageDiscountStrategy">
+        <property name="discount" value="50"/>
+        <property name="discountThreshold" value="10"/>
+        <property name="discountAll" value="false"/>
+    </bean>
+    <bean id="birthdayPackageDiscountStrategy" class="com.epam.spring.discount.CompoundDiscountStrategy">
+        <property name="discount" value="30"/>
+        <property name="discountAll" value="true"/>
+        <property name="discountStrategies">
+            <list>
+                <ref bean="birthdayDiscountStrategy"/>
+                <ref bean="packageDiscountStrategy"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="discountService" class="com.epam.spring.services.DiscountServiceImpl">
+        <property name="strategies">
+            <list>
+                <ref bean="birthdayDiscountStrategy"/>
+                <ref bean="packageDiscountStrategy"/>
+                <ref bean="birthdayPackageDiscountStrategy"/>
+            </list>
+        </property>
+    </bean>
+</beans>

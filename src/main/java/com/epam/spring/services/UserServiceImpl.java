@@ -1,0 +1,50 @@
+package com.epam.spring.services;
+
+import com.epam.spring.domain.User;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+
+public class UserServiceImpl implements UserService {
+    private static AtomicLong ID_SEQUENCE = new AtomicLong(1);
+    private static Map<Long, User> users = new HashMap<>();
+
+    @Override
+    public User save(User user) {
+        user.setId(ID_SEQUENCE.getAndIncrement());
+        users.put(user.getId(), user);
+        return user;
+    }
+
+    @Override
+    public boolean remove(User user) {
+        return users.remove(user.getId()) != null;
+    }
+
+    @Override
+    public User getById(long id) {
+        return users.get(id);
+    }
+
+    @Override
+    public User getByEmail(String email) {
+        if (email == null) {
+            return null;
+        }
+
+        for (User user : users.values()) {
+            if (email.equals(user.getEmail())) {
+                return user;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public List<User> getAll() {
+        return new ArrayList<>(users.values());
+    }
+}
