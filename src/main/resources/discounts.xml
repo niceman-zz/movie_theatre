@@ -27,7 +27,7 @@
     </bean>
 
     <bean id="discountService" class="com.epam.spring.services.DiscountServiceImpl">
-        <property name="strategies">
+        <property name="discountStrategies">
             <list>
                 <ref bean="birthdayDiscountStrategy"/>
                 <ref bean="packageDiscountStrategy"/>

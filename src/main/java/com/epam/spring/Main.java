@@ -5,6 +5,7 @@ import com.epam.spring.domain.Event;
 import com.epam.spring.domain.Rating;
 import com.epam.spring.domain.User;
 import com.epam.spring.services.AuditoriumService;
+import com.epam.spring.services.DiscountService;
 import com.epam.spring.services.EventService;
 import com.epam.spring.services.UserService;
 import org.springframework.context.ApplicationContext;
@@ -12,7 +13,10 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Main {
     public static void main(String[] args) {
@@ -24,6 +28,7 @@ public class Main {
         List<User> users = testUserService(context);
         System.out.println("------------------------------------------------");
         List<Event> events = testEventService(context, auditoriums);
+        testDiscounts(context);
     }
 
     static List<User> testUserService(ApplicationContext context) {
@@ -90,5 +95,29 @@ public class Main {
         eventService.getAll().forEach(event -> System.out.println(event));
 
         return eventService.getAll();
+    }
+
+    static void testDiscounts(ApplicationContext context) {
+        DiscountService discountService = context.getBean(DiscountService.class);
+
+        UserService userService = context.getBean(UserService.class);
+        User kamaz = userService.getByEmail("kamaz@othodov.net");
+        User zagon = userService.getByEmail("zagon@baranov.net");
+
+        EventService eventService = context.getBean(EventService.class);
+        Event bi2 = eventService.getByName("Bi-2");
+
+        System.out.println("Discounts");
+        System.out.println("Kamaz wants to buy 4 tickets to Bi-2 concert on March 4, 2020");
+        Set<Integer> seats = new LinkedHashSet<>();
+        seats.add(1);
+        seats.add(2);
+        seats.add(3);
+        seats.add(4);
+        System.out.println("His discount is (should be 0): " +
+                discountService.getDiscount(bi2, bi2.getEventTimetable().firstKey(), kamaz, seats));
+        System.out.println();
+        System.out.println("Now he wants to buy same 10 tickets to the same concert");
+        System.out.println("His discount is (should be 5 as  ");
     }
 }

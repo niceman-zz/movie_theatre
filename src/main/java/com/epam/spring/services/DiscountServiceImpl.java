@@ -20,9 +20,16 @@ public class DiscountServiceImpl implements DiscountService {
         int discount = 0;
         for (DiscountStrategy strategy: discountStrategies) {
             if (strategy.isEligible(user, seats.size(), dateTime)) {
-                
+                discount = Math.max(discount, calculateEffectiveDiscount(strategy));
             }
         }
-        return 0;
+        return discount;
+    }
+
+    private int calculateEffectiveDiscount(DiscountStrategy strategy) {
+        if (strategy.isDiscountAll()) {
+            return strategy.getDiscount();
+        }
+        return strategy.getDiscount() / strategy.getDiscountThreshold(); // just rough approximation
     }
 }
