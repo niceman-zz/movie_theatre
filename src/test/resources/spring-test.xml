@@ -5,13 +5,12 @@
  		http://www.springframework.org/schema/beans
  		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
 
-    <import resource="discounts.xml"/>
+    <import resource="discounts-test.xml"/>
 
     <bean id="auditoriumProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
         <property name="locations">
             <list>
                 <value>classpath:auditoriums.properties</value>
-                <value>classpath:additional-auditoriums.properties</value>
             </list>
         </property>
         <property name="fileEncoding" value="UTF-8"/>

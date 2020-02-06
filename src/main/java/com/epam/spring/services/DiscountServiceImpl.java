@@ -30,6 +30,6 @@ public class DiscountServiceImpl implements DiscountService {
         if (strategy.isDiscountAll()) {
             return strategy.getDiscount();
         }
-        return strategy.getDiscount() / strategy.getDiscountThreshold(); // just rough approximation
+        return strategy.getDiscount() / strategy.getDiscountThreshold(); // it's incorrect but just for simplicity
     }
 }

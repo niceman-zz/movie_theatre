@@ -13,6 +13,9 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Event save(Event event) {
+        if (getByName(event.getName()) != null) {
+            throw new IllegalArgumentException("Event with this name already exists: " + event.getName());
+        }
         event.setId(ID_SEQUENCE.getAndIncrement());
         events.put(event.getId(), event);
         return event;
@@ -74,4 +77,8 @@ public class EventServiceImpl implements EventService {
         return date.isAfter(from) || date.isEqual(from);
     }
 
+    @Override
+    public void clear() {
+        events.clear();
+    }
 }

@@ -10,6 +10,6 @@ import java.util.Set;
 
 public interface BookingService {
     double getTicketsPrice(Event event, LocalDateTime eventTime, User user, Set<Integer> seats);
-    double bookTickets(Set<Ticket> tickets);
+    void bookTickets(Set<Ticket> tickets);
     List<Ticket> getPurchasedTicketsForEvent(Event event, LocalDateTime dateTime);
 }

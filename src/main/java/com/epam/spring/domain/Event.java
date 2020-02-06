@@ -13,6 +13,9 @@ public class Event {
 
     public Event(String name, SortedMap<LocalDateTime, Auditorium> eventTimetable, double price, Rating rating) {
         this.name = name;
+        if (eventTimetable == null) {
+            eventTimetable = new TreeMap<>();
+        }
         this.eventTimetable = eventTimetable;
         this.price = price;
         this.rating = rating;

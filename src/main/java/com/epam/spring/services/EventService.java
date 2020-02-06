@@ -13,4 +13,5 @@ public interface EventService {
     List<Event> getAll();
     List<Event> getForDateRange(LocalDate from, LocalDate to);
     List<Event> getNextEvents(LocalDate to);
+    void clear();
 }

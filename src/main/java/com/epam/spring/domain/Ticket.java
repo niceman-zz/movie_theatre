@@ -30,4 +30,14 @@ public class Ticket {
     public User getOwner() {
         return owner;
     }
+
+    @Override
+    public String toString() {
+        return "Ticket{" +
+                "event=" + event.getName() +
+                ", seat=" + seat +
+                ", eventTime=" + eventTime +
+                ", owner=" + owner.getFullName() +
+                '}';
+    }
 }

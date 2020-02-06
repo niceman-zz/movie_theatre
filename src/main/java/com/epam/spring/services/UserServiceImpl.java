@@ -14,6 +14,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User save(User user) {
+        if (getByEmail(user.getEmail()) != null) {
+            throw new IllegalArgumentException("User with this email already exists: " + user.getEmail());
+        }
         user.setId(ID_SEQUENCE.getAndIncrement());
         users.put(user.getId(), user);
         return user;
@@ -46,5 +49,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getAll() {
         return new ArrayList<>(users.values());
+    }
+
+    @Override
+    public void clear() {
+        users.clear();
     }
 }
