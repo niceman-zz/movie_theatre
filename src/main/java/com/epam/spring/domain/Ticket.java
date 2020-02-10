@@ -1,6 +1,7 @@
 package com.epam.spring.domain;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 public class Ticket {
     private Event event;
@@ -39,5 +40,21 @@ public class Ticket {
                 ", eventTime=" + eventTime +
                 ", owner=" + owner.getFullName() +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Ticket ticket = (Ticket) o;
+        return seat == ticket.seat &&
+                Objects.equals(event, ticket.event) &&
+                Objects.equals(eventTime, ticket.eventTime) &&
+                Objects.equals(owner, ticket.owner);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(event, seat, eventTime, owner);
     }
 }
