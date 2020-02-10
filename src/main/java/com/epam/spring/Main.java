@@ -32,24 +32,24 @@ public class Main {
 
     static void testUserService(ApplicationContext context) {
         UserService userService = context.getBean(UserService.class);
-        User user = new User("Kamaz", "Othodov", "kamaz@othodov.net", LocalDate.of(1983, 4, 4));
-        User user2 = new User("Ushat", "Pomoev", "ushat@pomoev.net", LocalDate.of(1984, 5, 5));
-        User user3 = new User("Zagon", "Baranov", "zagon@baranov.net", LocalDate.of(1985, 6, 6));
-        userService.save(user);
-        userService.save(user2);
-        userService.save(user3);
+        User kamaz = new User("Kamaz", "Othodov", "kamaz@othodov.net", LocalDate.of(1983, 4, 4));
+        User ushat = new User("Ushat", "Pomoev", "ushat@pomoev.net", LocalDate.of(1984, 5, 5));
+        User zagon = new User("Zagon", "Baranov", "zagon@baranov.net", LocalDate.of(1985, 6, 6));
+        userService.add(kamaz);
+        userService.add(ushat);
+        userService.add(zagon);
         System.out.println("Users");
         System.out.println("id = 1");
         System.out.println(userService.getById(1));
         System.out.println();
         System.out.println("should be Ushat");
-        System.out.println(userService.getByEmail(user2.getEmail()));
+        System.out.println(userService.getByEmail(ushat.getEmail()));
         System.out.println();
         System.out.println("All users");
         userService.getAll().forEach(u -> System.out.println(u));
         System.out.println();
         System.out.println("Removed Ushat");
-        userService.remove(user2);
+        userService.remove(ushat);
         userService.getAll().forEach(u -> System.out.println(u));
     }
 
@@ -162,6 +162,7 @@ public class Main {
         bookingService.bookTickets(tickets);
         System.out.println("Should be 1 ticket booked for the nearest Bi-2 concert (March 4): " +
                 bookingService.getPurchasedTicketsForEvent(bi2, bi2.getEventTimetable().firstKey()));
+        System.out.println(String.format("%s has ticket to Bi-2 concert: %s", user.getFullName(), user.getTickets()));
         System.out.println();
 
         tickets.clear();

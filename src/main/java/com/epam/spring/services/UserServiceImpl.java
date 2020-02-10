@@ -13,13 +13,21 @@ public class UserServiceImpl implements UserService {
     private static Map<Long, User> users = new HashMap<>();
 
     @Override
-    public User save(User user) {
+    public User add(User user) {
         if (getByEmail(user.getEmail()) != null) {
             throw new IllegalArgumentException("User with this email already exists: " + user.getEmail());
         }
         user.setId(ID_SEQUENCE.getAndIncrement());
         users.put(user.getId(), user);
         return user;
+    }
+
+    @Override
+    public void update(User user) {
+        if (user.getId() == null || !users.containsKey(user.getId())) {
+            throw new IllegalArgumentException("Can't update unregistered user: " + user.getFullName());
+        }
+        users.replace(user.getId(), user);
     }
 
     @Override
@@ -54,5 +62,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public void clear() {
         users.clear();
+    }
+
+    @Override
+    public boolean isRegistered(User user) {
+        return user.getId() != null && users.containsKey(user.getId());
     }
 }

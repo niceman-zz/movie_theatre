@@ -12,4 +12,5 @@ public interface BookingService {
     double getTicketsPrice(Event event, LocalDateTime eventTime, User user, Set<Integer> seats);
     void bookTickets(Set<Ticket> tickets);
     List<Ticket> getPurchasedTicketsForEvent(Event event, LocalDateTime dateTime);
+    void clear();
 }

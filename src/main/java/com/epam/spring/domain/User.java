@@ -1,19 +1,23 @@
 package com.epam.spring.domain;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public class User {
     private Long id;
     private String firstName;
     private String lastName;
     private LocalDate birthday;
+    private Set<Ticket> tickets;
 
     public User(String firstName, String lastName, String email, LocalDate birthday) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.birthday = birthday;
+        tickets = new HashSet<>();
     }
 
     private String email;
@@ -60,6 +64,10 @@ public class User {
 
     public void setBirthday(LocalDate birthday) {
         this.birthday = birthday;
+    }
+
+    public Set<Ticket> getTickets() {
+        return tickets;
     }
 
     @Override

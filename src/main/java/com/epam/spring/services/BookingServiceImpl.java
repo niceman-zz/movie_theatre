@@ -12,9 +12,11 @@ public class BookingServiceImpl implements BookingService {
     private static final Map<Event, Map<LocalDateTime, List<Ticket>>> bookedTickets = new HashMap<>();
 
     private final DiscountService discountService;
+    private final UserService userService;
 
-    public BookingServiceImpl(DiscountService discountService) {
+    public BookingServiceImpl(DiscountService discountService, UserService userService) {
         this.discountService = discountService;
+        this.userService = userService;
     }
 
     @Override
@@ -50,12 +52,38 @@ public class BookingServiceImpl implements BookingService {
         if (tickets == null || tickets.isEmpty()) {
             return;
         }
+        checkOwner(tickets);
+
         Ticket ticketForData = tickets.iterator().next();
         Map<LocalDateTime, List<Ticket>> allTicketsForEvent =
                 bookedTickets.computeIfAbsent(ticketForData.getEvent(), v -> new HashMap<>());
         List<Ticket> ticketsForThisEvent =
                 allTicketsForEvent.computeIfAbsent(ticketForData.getEventTime(), v -> new ArrayList<>());
         ticketsForThisEvent.addAll(tickets);
+
+        saveTicketsToOwner(tickets);
+    }
+
+    private static void checkOwner(Set<Ticket> tickets) {
+        User owner = tickets.iterator().next().getOwner();
+        for (Ticket ticket: tickets) {
+            if (!owner.equals(ticket.getOwner())) {
+                throw new IllegalArgumentException("Can't book tickets for different users in one operation.");
+            }
+        }
+    }
+
+    private void saveTicketsToOwner(Set<Ticket> tickets) {
+        User owner = tickets.iterator().next().getOwner();
+        if (userService.isRegistered(owner)) {
+            User fromStorage = userService.getById(owner.getId());
+            fromStorage.getTickets().addAll(tickets);
+            if (owner != fromStorage) {
+                owner.getTickets().addAll(tickets);
+            }
+        } else {
+            owner.getTickets().addAll(tickets);
+        }
     }
 
     @Override
@@ -69,5 +97,10 @@ public class BookingServiceImpl implements BookingService {
             return Collections.emptyList();
         }
         return particularDateTickets;
+    }
+
+    @Override
+    public void clear() {
+        bookedTickets.clear();
     }
 }

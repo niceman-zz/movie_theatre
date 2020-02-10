@@ -1,6 +1,7 @@
 package com.epam.spring.services;
 
 import com.epam.spring.domain.*;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +22,9 @@ public class BookingServiceTest {
     @Autowired
     private BookingService bookingService;
 
+    @Autowired
+    private UserService userService;
+
     private static Event event;
     private static Event highRankedEvent;
     private static User user;
@@ -35,6 +39,11 @@ public class BookingServiceTest {
         event = new Event("some event", timetable, 200, Rating.MID);
         highRankedEvent = new Event("Event with huge ratings", timetable, 1000, Rating.HIGH);
         user = new User("Ivan", "Ivanich", "ivan@ivanich.ru", LocalDate.of(1988, 4, 4));
+    }
+
+    @AfterEach
+    public void clear() {
+        bookingService.clear();
     }
 
     @Test
@@ -130,7 +139,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    public void shouldReturnBookedTickets() {
+    public void shouldReturnBookedTicketsForEvent() {
         Ticket tkt1 = new Ticket(event, 1, event.getEventTimetable().firstKey(), user);
         bookingService.bookTickets(Collections.singleton(tkt1));
         List<Ticket> bookedTicket =
@@ -143,5 +152,23 @@ public class BookingServiceTest {
                 bookingService.getPurchasedTicketsForEvent(event, event.getEventTimetable().firstKey());
         assertThat(bookedTickets.size(), is(2));
         assertThat(bookedTickets.get(0), not(bookedTickets.get(1)));
+    }
+
+    @Test
+    public void usersShouldHaveTicketAfterTheyBookedIt() {
+        User user = userService.add(new User("Kamaz", "Othodov", "kamaz@othodov.net", LocalDate.of(1983, 4, 4)));
+        User copy = new User(user.getFirstName(), user.getLastName(), user.getEmail(), user.getBirthday());
+        copy.setId(user.getId());
+        Event newEvent = new Event("Gala", LocalDateTime.now().plusDays(1),
+                event.getEventTimetable().values().iterator().next(), 100, Rating.MID);
+        Ticket ticket = new Ticket(newEvent, 1, newEvent.getEventTimetable().firstKey(), copy);
+
+        bookingService.bookTickets(Collections.singleton(ticket));
+        assertThat(user == copy, is(false));  // these are not same instances
+        assertThat(user.equals(copy), is(true)); // but they're equal
+        assertThat(user.getTickets(), not(empty()));
+        assertThat(user.getTickets().iterator().next(), is(ticket));
+        assertThat(user.getTickets().equals(copy.getTickets()), is(true));
+        userService.clear();
     }
 }

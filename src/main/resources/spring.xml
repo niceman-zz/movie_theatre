@@ -27,5 +27,6 @@
 
     <bean id="bookingService" class="com.epam.spring.services.BookingServiceImpl">
         <constructor-arg ref="discountService"/>
+        <constructor-arg ref="userService"/>
     </bean>
 </beans>
