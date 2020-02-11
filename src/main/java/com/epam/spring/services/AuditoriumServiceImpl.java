@@ -1,30 +1,37 @@
 package com.epam.spring.services;
 
 import com.epam.spring.domain.Auditorium;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 
+@Component
 public class AuditoriumServiceImpl implements AuditoriumService {
-    private Properties properties;
+    @Autowired
+    private Properties auditoriumProperties;
+
     private Map<String, Auditorium> auditoriums;
     private List<Auditorium> auditoriumsList;
 
-    public AuditoriumServiceImpl(Properties properties) {
-        this.properties = properties;
-    }
+//    public AuditoriumServiceImpl(Properties properties) {
+//        this.properties = properties;
+//    }
 
+    @PostConstruct
     private void init() {
         Set<String> prefixes = new HashSet<>();
-        for (String key: properties.stringPropertyNames()) {
+        for (String key: auditoriumProperties.stringPropertyNames()) {
             prefixes.add(key.substring(0, key.indexOf('.')));
         }
 
         auditoriums = new HashMap<>(prefixes.size());
         auditoriumsList = new ArrayList<>(prefixes.size());
         for (String prefix: prefixes) {
-            String name = properties.getProperty(prefix + ".name");
-            String seatsNumber = properties.getProperty(prefix + ".seatsNumber");
-            String vipSeats = properties.getProperty(prefix + ".vipSeats");
+            String name = auditoriumProperties.getProperty(prefix + ".name");
+            String seatsNumber = auditoriumProperties.getProperty(prefix + ".seatsNumber");
+            String vipSeats = auditoriumProperties.getProperty(prefix + ".vipSeats");
             Auditorium auditorium = createAuditorium(name, seatsNumber, vipSeats);
             auditoriums.put(name, auditorium);
             auditoriumsList.add(auditorium);

@@ -2,12 +2,14 @@ package com.epam.spring.services;
 
 import com.epam.spring.domain.Auditorium;
 import com.epam.spring.domain.Event;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
+@Component
 public class EventServiceImpl implements EventService {
     private static AtomicLong ID_SEQUENCE = new AtomicLong(1);
     private static Map<Long, Event> events = new HashMap<>();

@@ -1,9 +1,11 @@
 package com.epam.spring;
 
+import com.epam.spring.config.AppConfig;
 import com.epam.spring.domain.*;
 import com.epam.spring.services.*;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,7 +13,7 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
-        ApplicationContext context = new ClassPathXmlApplicationContext("spring.xml");
+        ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
         List<Auditorium> auditoriums = testAuditoriumService(context);
         System.out.println("------------------------------------------------");
         testUserService(context);
