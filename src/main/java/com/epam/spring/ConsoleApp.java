@@ -621,11 +621,11 @@ public class ConsoleApp {
     }
 
     private void bookTickets() {
-        System.out.println("Not implemented");
+        System.out.println("Not implemented in console, but you can check it in BookingService, BookingServiceTest and Main");
     }
 
     private void checkBookings() {
-        System.out.println("Not implemented");
+        System.out.println("Not implemented in console, but you can check it in BookingService, BookingServiceTest and Main");
     }
 
     private void exit() {
