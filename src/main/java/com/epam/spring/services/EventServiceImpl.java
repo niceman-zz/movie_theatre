@@ -1,5 +1,6 @@
 package com.epam.spring.services;
 
+import com.epam.spring.domain.Auditorium;
 import com.epam.spring.domain.Event;
 
 import java.time.LocalDate;
@@ -50,14 +51,10 @@ public class EventServiceImpl implements EventService {
     public List<Event> getForDateRange(LocalDate from, LocalDate to) {
         List<Event> result = new ArrayList<>();
         for (Event event : events.values()) {
-            Event eventWithSuitableTimesOnly = null;
             for (LocalDateTime time : event.getEventTimetable().keySet()) {
                 if (isAfterOrEqual(time.toLocalDate(), from) && isBeforeOrEqual(time.toLocalDate(), to)) {
-                    if (eventWithSuitableTimesOnly == null) {
-                        eventWithSuitableTimesOnly = new Event(event.getName(), new TreeMap<>(), event.getPrice(), event.getRating());
-                        result.add(eventWithSuitableTimesOnly);
-                    }
-                    eventWithSuitableTimesOnly.getEventTimetable().put(time, event.getEventTimetable().get(time));
+                    result.add(new Event(event.getName(), time, event.getEventTimetable().get(time), event.getPrice(),
+                            event.getRating()));
                 }
             }
         }
@@ -67,6 +64,16 @@ public class EventServiceImpl implements EventService {
     @Override
     public List<Event> getNextEvents(LocalDate to) {
         return getForDateRange(LocalDate.now(), to);
+    }
+
+    @Override
+    public Event addNewTimeForEvent(Long eventId, LocalDateTime time, Auditorium auditorium) {
+        if (!events.containsKey(eventId)) {
+            throw new IllegalArgumentException("There's no event with ID " + eventId + " in the system");
+        }
+        Event event = events.get(eventId);
+        event.getEventTimetable().put(time, auditorium);
+        return event;
     }
 
     private static boolean isBeforeOrEqual(LocalDate date, LocalDate to) {

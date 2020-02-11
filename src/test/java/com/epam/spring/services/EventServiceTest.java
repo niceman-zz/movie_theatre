@@ -136,4 +136,17 @@ public class EventServiceTest {
         assertThat(eventsMap.containsKey(football.getName()), is(true));
         assertThat(eventsMap.containsKey(basketball.getName()), is(true));
     }
+
+    @Test
+    public void shouldAddNewTimeToExistingEventsTimetable() {
+        Auditorium auditorium = auditoriumService.getAll().get(0);
+        TreeMap<LocalDateTime, Auditorium> concertTimetable = new TreeMap<>();
+        concertTimetable.put(LocalDateTime.of(2020, 3, 1, 20, 0), auditorium);
+        Event event = eventService.save(new Event("Concert", concertTimetable, 1000.0, Rating.MID));
+
+        Event updatedEvent = eventService.addNewTimeForEvent(event.getId(), LocalDateTime.of(2020, 4, 1, 20, 0),
+                auditoriumService.getAll().get(1));
+        assertThat(eventService.getAll().size(), is(1)); // didn't add new event
+        assertThat(updatedEvent.getEventTimetable().size(), is(2)); // added new time to timetable of existing event
+    }
 }

@@ -1,9 +1,6 @@
 package com.epam.spring;
 
-import com.epam.spring.domain.Auditorium;
-import com.epam.spring.domain.Event;
-import com.epam.spring.domain.Rating;
-import com.epam.spring.domain.User;
+import com.epam.spring.domain.*;
 import com.epam.spring.services.*;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -14,6 +11,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.function.Predicate;
 
 public class ConsoleApp {
     private static final String BACK_COMMAND = "back";
@@ -63,6 +61,7 @@ public class ConsoleApp {
                 "\t\tEvents\n" +
                 "list-events -- show all events\n" +
                 "add-event -- add new events\n" +
+                "add-event-time -- add new time and place for event\n" +
                 "event-by-id -- check event by id\n" +
                 "event-by-name -- check event by name\n" +
                 "remove-event -- delete event\n" +
@@ -85,13 +84,13 @@ public class ConsoleApp {
             case "remove-user": removeUser(); break;
             case "list-events": showEvents(); break;
             case "add-event": addEvent(); break;
+            case "add-event-time": addEventTime(); break;
             case "event-by-id": showEventById(); break;
             case "event-by-name": showEventByName(); break;
             case "remove-event": removeEvent(); break;
             case "event-date-range": showEventsForDateRange(); break;
             case "next-events": showNextEvents(); break;
-            case "check-price": checkPrice(); break;
-            case "book-tickets": bookTickets(); break;
+            case "check-price": case "book-tickets": checkPrice(); break;
             case "check-bookings": checkBookings(); break;
             case "menu": System.out.println(mainMenu()); break;
             case "exit": exit();
@@ -100,7 +99,7 @@ public class ConsoleApp {
     }
 
     private void showAuditoriums() {
-        System.out.println(auditoriumService.getAll());
+        auditoriumService.getAll().forEach(System.out::println);
     }
 
     private void checkAuditorium() {
@@ -116,6 +115,7 @@ public class ConsoleApp {
                 }
                 if (audMap.containsKey(index)) {
                     System.out.println(audMap.get(index));
+                    return;
                 } else {
                     System.out.println("Wrong input! <" + index + ">");
                 }
@@ -128,6 +128,7 @@ public class ConsoleApp {
                     System.out.println("There's no auditorium with name: " + input);
                 } else {
                     System.out.println(aud);
+                    return;
                 }
             }
         }
@@ -172,6 +173,7 @@ public class ConsoleApp {
             System.out.print("User ID (0 to return to main menu): ");
             try {
                 long userId = scanner.nextLong();
+                scanner.nextLine();
                 if (userId == 0) {
                     return;
                 }
@@ -213,25 +215,11 @@ public class ConsoleApp {
             usersMap.put(i++, user);
         }
         System.out.println("Which one do you want to delete? (type number)");
-        do {
-            System.out.print("User # (0 to return to main menu): ");
-            try {
-                int userNum = scanner.nextInt();
-                scanner.nextLine();
-                if (userNum == 0) {
-                    return;
-                }
-                if (usersMap.containsKey(userNum)) {
-                    userService.remove(usersMap.get(userNum));
-                    System.out.println("User has been deleted.");
-                    return;
-                }
-                System.out.println("Wrong number! Try again");
-            } catch (InputMismatchException e) {
-                scanner.nextLine();
-                System.out.println("Enter user number as you see it on the screen");
-            }
-        } while (true);
+        Integer userNumber = selectInteger(usersMap::containsKey, "User # (0 to return to main menu): ");
+        if (userNumber != null) {
+            userService.remove(usersMap.get(userNumber));
+            System.out.println("User has been deleted.");
+        }
     }
 
     private void showEvents() {
@@ -249,7 +237,7 @@ public class ConsoleApp {
         if (date == null) {
             return;
         }
-        Double price = getNumberFromInput("Base price for the ticket (-1 to return to main menu): ", -1);
+        Double price = getDoubleFromInput("Base price for the ticket (-1 to return to main menu): ", -1.0);
         if (price == null) {
             return;
         }
@@ -270,23 +258,8 @@ public class ConsoleApp {
             System.out.println(i + ". " + auditorium);
             auditoriumMap.put(i++, auditorium);
         }
-        do {
-            System.out.print("Enter number (0 to return to main menu): ");
-            try {
-                int index = scanner.nextInt();
-                scanner.nextLine();
-                if (index == 0) {
-                    return null;
-                }
-                if (auditoriumMap.containsKey(index)) {
-                    return auditoriumMap.get(index);
-                }
-                System.out.println("Wrong number! Try again");
-            } catch (InputMismatchException e) {
-                scanner.nextLine();
-                System.out.println("Enter only number as you see it on the screen");
-            }
-        } while (true);
+        Integer selectedIndex = selectInteger((index) -> auditoriumMap.containsKey(index));
+        return selectedIndex == null ? null : auditoriumMap.get(selectedIndex);
     }
 
     private LocalDateTime enterEventDate() {
@@ -299,6 +272,33 @@ public class ConsoleApp {
             return null;
         }
         return LocalDateTime.of(date, time);
+    }
+
+    private static Integer selectInteger(Predicate<Integer> condition) {
+        return selectInteger(condition, null);
+    }
+
+    private static Integer selectInteger(Predicate<Integer> condition, String prompt) {
+        if (prompt == null) {
+            prompt = "Enter number (0 to return to main menu): ";
+        }
+        do {
+            System.out.print(prompt);
+            try {
+                int index = scanner.nextInt();
+                scanner.nextLine();
+                if (index == 0) {
+                    return null;
+                }
+                if (condition.test(index)) {
+                    return index;
+                }
+                System.out.println("Wrong number! Try again");
+            } catch (InputMismatchException e) {
+                scanner.nextLine();
+                System.out.println("Enter only number as you see it on the screen");
+            }
+        } while (true);
     }
 
     private static LocalDate getDateFromInput(String dateName) {
@@ -317,18 +317,18 @@ public class ConsoleApp {
     }
 
     private static LocalTime getTimeFromInput() {
-        Integer hour = getNumberFromInput("Hour (0 - 23) (-1 to return to main menu): ", -1, 0, 23);
+        Integer hour = getNumberWithinLimits("Hour (0 - 23) (-1 to return to main menu): ", -1, 0, 23);
         if (hour == null) {
             return null;
         }
-        Integer minute = getNumberFromInput("Minute (0 - 59) (-1 to return to main menu): ", -1, 0, 59);
+        Integer minute = getNumberWithinLimits("Minute (0 - 59) (-1 to return to main menu): ", -1, 0, 59);
         if (minute == null) {
             return null;
         }
         return LocalTime.of(hour, minute);
     }
 
-    private static Integer getNumberFromInput(String requestString, int exitNumber, Integer min, Integer max) {
+    private static Integer getNumberWithinLimits(String requestString, int exitNumber, int min, int max) {
         do {
             System.out.print(requestString);
             try {
@@ -337,10 +337,10 @@ public class ConsoleApp {
                 if (number == exitNumber) {
                     return null;
                 }
-                if (min != null && number >= min && max != null && number <= max) {
+                if (number >= min && number <= max) {
                     return number;
                 }
-                System.out.println("Wrong number! Try again");
+                System.out.println(String.format("Wrong number! Should be between %d and %d. Try again", min, max));
             } catch (InputMismatchException e) {
                 scanner.nextLine();
                 System.out.println("Digits only! Try again");
@@ -354,6 +354,7 @@ public class ConsoleApp {
             System.out.println(rating);
         }
         do {
+            System.out.print("Rating: ");
             String input = scanner.nextLine();
             if (CANCEL_COMMAND.equals(input)) {
                 return null;
@@ -366,11 +367,12 @@ public class ConsoleApp {
         } while (true);
     }
 
-    private static Double getNumberFromInput(String requestString, double exitNumber) {
+    private static Double getDoubleFromInput(String requestString, double exitNumber) {
         do {
             System.out.print(requestString);
             try {
                 double number = scanner.nextDouble();
+                scanner.nextLine();
                 if (number == exitNumber) {
                     return null;
                 }
@@ -380,6 +382,28 @@ public class ConsoleApp {
                 System.out.println("Numbers only! Try again");
             }
         } while (true);
+    }
+
+    private void addEventTime() {
+        if (eventService.getAll().isEmpty()) {
+            System.out.println("You can't add new time for event as there are no existing events in the system.");
+            return;
+        }
+        Event event = getEventFromInput();
+        if (event == null) {
+            return;
+        }
+        System.out.println("Enter new date for this event");
+        LocalDateTime time = enterEventDate();
+        if (time == null) {
+            return;
+        }
+        Auditorium auditorium = selectAuditorium();
+        if (auditorium == null) {
+            return;
+        }
+        eventService.addNewTimeForEvent(event.getId(), time, auditorium);
+        System.out.println("New time has been added");
     }
 
     private void showEventById() {
@@ -429,25 +453,11 @@ public class ConsoleApp {
             eventsMap.put(i++, event);
         }
         System.out.println("Which one do you want to delete? (type number)");
-        do {
-            System.out.print("Event # (0 to return to main menu): ");
-            try {
-                int eventNum = scanner.nextInt();
-                scanner.nextLine();
-                if (eventNum == 0) {
-                    return;
-                }
-                if (eventsMap.containsKey(eventNum)) {
-                    eventService.remove(eventsMap.get(eventNum));
-                    System.out.println("Event has been deleted.");
-                    return;
-                }
-                System.out.println("Wrong number! Try again");
-            } catch (InputMismatchException e) {
-                scanner.nextLine();
-                System.out.println("Enter event number as you see it on the screen");
-            }
-        } while (true);
+        Integer eventNumber = selectInteger(eventsMap::containsKey, "Event # (0 to return to main menu): ");
+        if (eventNumber != null) {
+            eventService.remove(eventsMap.get(eventNumber));
+            System.out.println("Event has been deleted.");
+        }
     }
 
     private void showEventsForDateRange() {
@@ -496,6 +506,10 @@ public class ConsoleApp {
         System.out.println("Seats: " + seats);
         System.out.println("--------------------------");
         System.out.println("Total price: " + price);
+        System.out.println();
+        if (confirmAction(String.format("Would you like to book %s?", seats.size() == 1 ? "a ticket" : "these tickets"))) {
+            bookTickets(event, date, user, seats);
+        }
     }
 
     private Event getEventFromInput() {
@@ -506,23 +520,11 @@ public class ConsoleApp {
             System.out.println(i + ". " + event.getName());
             eventsMap.put(i++, event);
         }
-        do {
-            System.out.print("Event # (0 to return to main menu): ");
-            try {
-                int eventNum = scanner.nextInt();
-                scanner.nextLine();
-                if (eventNum == 0) {
-                    return null;
-                }
-                if (eventsMap.containsKey(eventNum)) {
-                    return eventsMap.get(eventNum);
-                }
-                System.out.println("Wrong number! Try again");
-            } catch (InputMismatchException e) {
-                scanner.nextLine();
-                System.out.println("Enter event number as you see it on the screen");
-            }
-        } while (true);
+        Integer eventNumber = selectInteger(eventsMap::containsKey, "Event # (0 to return to main menu): ");
+        if (eventNumber != null) {
+            return eventsMap.get(eventNumber);
+        }
+        return null;
     }
 
     private LocalDateTime getEventDate(Event event) {
@@ -578,28 +580,16 @@ public class ConsoleApp {
             usersMap.put(i++, user);
         }
         System.out.println("Which one do you want to select? (type number)");
-        do {
-            System.out.print("User # (0 to return to main menu): ");
-            try {
-                int userNum = scanner.nextInt();
-                scanner.nextLine();
-                if (userNum == 0) {
-                    return null;
-                }
-                if (usersMap.containsKey(userNum)) {
-                    return usersMap.get(userNum);
-                }
-                System.out.println("Wrong number! Try again");
-            } catch (InputMismatchException e) {
-                scanner.nextLine();
-                System.out.println("Enter user number as you see it on the screen");
-            }
-        } while (true);
+        Integer userNumber = selectInteger(usersMap::containsKey, "User # (0 to return to main menu): ");
+        if (userNumber != null) {
+            return usersMap.get(userNumber);
+        }
+        return null;
     }
 
     private static Set<Integer> getSeats() {
-        System.out.print("Enter comma separated seats: ");
         do {
+            System.out.print("Enter comma separated seats: ");
             String input = scanner.nextLine();
             if (CANCEL_COMMAND.equals(input)) {
                 return null;
@@ -620,12 +610,48 @@ public class ConsoleApp {
         } while (true);
     }
 
-    private void bookTickets() {
-        System.out.println("Not implemented in console, but you can check it in BookingService, BookingServiceTest and Main");
+    private void bookTickets(Event event, LocalDateTime date, User user, Set<Integer> seats) {
+        Set<Ticket> tickets = new HashSet<>();
+        seats.forEach(seat -> tickets.add(new Ticket(event, seat, date, user)));
+        bookingService.bookTickets(tickets);
+        System.out.println(String.format("%s been booked", seats.size() == 1 ? "Ticket has" : "Tickets have"));
     }
 
     private void checkBookings() {
-        System.out.println("Not implemented in console, but you can check it in BookingService, BookingServiceTest and Main");
+        System.out.println("Select event and a particular time for which you want to check bookings.");
+        Event event = getEventFromInput();
+        if (event == null) {
+            return;
+        }
+        LocalDateTime time = getEventDate(event);
+        if (time == null) {
+            return;
+        }
+        List<Ticket> tickets = bookingService.getPurchasedTicketsForEvent(event, time);
+        if (tickets.isEmpty()) {
+            System.out.println(String.format("There's no booking for '%s' on %s", event.getName(), time));
+            return;
+        }
+        System.out.println(String.format("%d %s been booked for '%s' on %s", tickets.size(),
+                tickets.size() > 1 ? "tickets have" : "ticket has", event.getName(), time));
+        if (confirmAction("Would you like to check the details?")) {
+            tickets.forEach(System.out::println);
+        }
+    }
+
+    private static boolean confirmAction(String action) {
+        System.out.print(action + " (y/n)");
+
+        String confirmation;
+        do {
+            confirmation = scanner.nextLine();
+            if ("y".equalsIgnoreCase(confirmation)) {
+                return true;
+            } else if ("n".equalsIgnoreCase(confirmation)) {
+                return false;
+            }
+            System.out.println("Wrong input! Enter 'y' to confirm the action or 'n' to cancel.");
+        } while (true);
     }
 
     private void exit() {
