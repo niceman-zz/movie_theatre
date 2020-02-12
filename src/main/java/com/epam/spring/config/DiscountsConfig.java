@@ -19,7 +19,7 @@ public class DiscountsConfig {
 
     @Bean
     public DiscountStrategy packageDiscountStrategy() {
-        return new PackageDiscountStrategy(5, 10, false);
+        return new PackageDiscountStrategy(50, 10, false);
     }
 
     @Bean
