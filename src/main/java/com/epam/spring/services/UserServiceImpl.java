@@ -1,6 +1,7 @@
 package com.epam.spring.services;
 
 import com.epam.spring.domain.User;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
+@Component
 public class UserServiceImpl implements UserService {
     private static AtomicLong ID_SEQUENCE = new AtomicLong(1);
     private static Map<Long, User> users = new HashMap<>();

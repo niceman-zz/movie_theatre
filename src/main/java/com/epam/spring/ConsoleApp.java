@@ -1,8 +1,11 @@
 package com.epam.spring;
 
+import com.epam.spring.config.AppConfig;
 import com.epam.spring.domain.*;
 import com.epam.spring.services.*;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.time.LocalDate;
@@ -18,7 +21,7 @@ public class ConsoleApp {
     private static final String CANCEL_COMMAND = "cancel";
 
     public static void main(String[] args) {
-        ApplicationContext context = new ClassPathXmlApplicationContext("spring.xml");
+        ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
         ConsoleApp app = new ConsoleApp(context);
         app.run();
     }
@@ -40,6 +43,7 @@ public class ConsoleApp {
     public void run() {
         System.out.println("Welcome to a movie theatre application! This is a main menu of the application:");
         System.out.println(mainMenu());
+        System.out.println();
         System.out.println("To see it again just type 'menu'\nTo exit type 'exit'.");
 
         do {
@@ -500,9 +504,9 @@ public class ConsoleApp {
         }
         double price = bookingService.getTicketsPrice(event, date, user, seats);
         System.out.println("Price details:");
-        System.out.println("Event: " + event);
+        System.out.println("Event: " + event.getName());
         System.out.println("Date: " + date);
-        System.out.println("User: " + user);
+        System.out.println("User: " + user.getFullName());
         System.out.println("Seats: " + seats);
         System.out.println("--------------------------");
         System.out.println("Total price: " + price);

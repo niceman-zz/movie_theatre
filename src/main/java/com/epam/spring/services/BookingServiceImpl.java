@@ -1,23 +1,24 @@
 package com.epam.spring.services;
 
 import com.epam.spring.domain.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
+@Component
 public class BookingServiceImpl implements BookingService {
     private static final double HIGH_RANKED_EVENT_CHARGE = 1.2;
     private static final double VIP_SEAT_CHARGE = 2;
 
     private static final Map<Event, Map<LocalDateTime, List<Ticket>>> bookedTickets = new HashMap<>();
 
-    private final DiscountService discountService;
-    private final UserService userService;
+    @Autowired
+    private DiscountService discountService;
 
-    public BookingServiceImpl(DiscountService discountService, UserService userService) {
-        this.discountService = discountService;
-        this.userService = userService;
-    }
+    @Autowired
+    private UserService userService;
 
     @Override
     public double getTicketsPrice(Event event, LocalDateTime eventTime, User user, Set<Integer> seats) {

@@ -1,5 +1,6 @@
 package com.epam.spring.services;
 
+import com.epam.spring.config.AppConfig;
 import com.epam.spring.domain.Auditorium;
 import com.epam.spring.domain.Event;
 import com.epam.spring.domain.Rating;
@@ -20,7 +21,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration("classpath:spring-test.xml")
+@ContextConfiguration(classes = {AppConfig.class})
 public class EventServiceTest {
     @Autowired
     private EventService eventService;
