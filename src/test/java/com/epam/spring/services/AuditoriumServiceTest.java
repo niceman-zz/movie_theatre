@@ -1,5 +1,6 @@
 package com.epam.spring.services;
 
+import com.epam.spring.config.AppConfig;
 import com.epam.spring.domain.Auditorium;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,7 +14,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration("classpath:spring-test.xml")
+@ContextConfiguration(classes = {AppConfig.class})
 public class AuditoriumServiceTest {
     @Autowired
     private AuditoriumService auditoriumService;
@@ -21,7 +22,7 @@ public class AuditoriumServiceTest {
     @Test
     public void shouldGetAllAuditoriums() {
         List<Auditorium> auditoriums = auditoriumService.getAll();
-        assertThat(auditoriums.size(), is(2));
+        assertThat(auditoriums.size(), is(4));
     }
 
     @Test

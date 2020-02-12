@@ -1,5 +1,6 @@
 package com.epam.spring.services;
 
+import com.epam.spring.config.AppConfig;
 import com.epam.spring.domain.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,7 +18,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration("classpath:spring-test.xml")
+@ContextConfiguration(classes = {AppConfig.class})
 public class BookingServiceTest {
     @Autowired
     private BookingService bookingService;
