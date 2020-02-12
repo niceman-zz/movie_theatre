@@ -5,6 +5,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 public class Event {
+    public static final double VIP_SEAT_CHARGE = 2; // probably should not be static but OK for now
+
     private Long id;
     private String name;
     private SortedMap<LocalDateTime, Auditorium> eventTimetable;

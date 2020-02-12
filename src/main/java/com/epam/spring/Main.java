@@ -92,6 +92,9 @@ public class Main {
         System.out.println();
         System.out.println("Let's check all events again");
         eventService.getAll().forEach(event -> System.out.println(event));
+        System.out.println();
+        System.out.println("Zemfira was accessed by name " + eventService.getEventCount(zemfira.getName()) + " time(s)");
+        System.out.println("While Metallica only " + eventService.getEventCount(metallica.getName()) + " time(s)");
     }
 
     static void testDiscounts(ApplicationContext context) {
@@ -111,7 +114,7 @@ public class Main {
         System.out.println();
         seats.addAll(Arrays.asList(5, 6, 7, 8, 9, 10));
         System.out.println("Now he wants to buy 10 tickets to the same concert");
-        System.out.println("His discount is (should be 5): " +
+        System.out.println("His discount is (should be 4 as we have only int discounts): " +
                 discountService.getDiscount(bi2, bi2.getEventTimetable().firstKey(), kamaz, seats));
         System.out.println();
         System.out.println("Kamaz's wife asked him to buy also 2 tickets for the concert in April");
@@ -154,7 +157,7 @@ public class Main {
         System.out.println();
 
         seats.addAll(Arrays.asList(2, 4, 5, 6, 7, 8, 9, 10));
-        System.out.println("2 VIP and 8 ordinary tickets with 5% discount for 10 tickets package (27360): " +
+        System.out.println("2 VIP and 8 ordinary tickets with discount for 10 tickets package (27648): " +
                 bookingService.getTicketsPrice(bi2, bi2.getEventTimetable().firstKey(), user, seats));
         System.out.println();
 
@@ -177,5 +180,13 @@ public class Main {
 
         System.out.println("Let's check that we still have previously booked ticket: " +
                 bookingService.getPurchasedTicketsForEvent(bi2, bi2.getEventTimetable().firstKey()));
+        System.out.println();
+        System.out.println("Prices to Bi-2 concerts were checked " + eventService.getEventChecksCount(bi2.getName())
+                + " time(s)");
+        System.out.println("Zemfira - " + eventService.getEventChecksCount(zemfira.getName()) + " time(s)");
+        System.out.println();
+        System.out.println("Tickets to Bi-2 concerts were booked " + eventService.getEventBookings(bi2.getName())
+                + " time(s)");
+        System.out.println("Zemfira - " + eventService.getEventBookings(zemfira.getName()) + " time(s)");
     }
 }

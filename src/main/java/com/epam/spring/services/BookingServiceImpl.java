@@ -10,7 +10,6 @@ import java.util.*;
 @Component
 public class BookingServiceImpl implements BookingService {
     private static final double HIGH_RANKED_EVENT_CHARGE = 1.2;
-    private static final double VIP_SEAT_CHARGE = 2;
 
     private static final Map<Event, Map<LocalDateTime, List<Ticket>>> bookedTickets = new HashMap<>();
 
@@ -32,7 +31,7 @@ public class BookingServiceImpl implements BookingService {
         double eventCharge = event.getRating() == Rating.HIGH ? HIGH_RANKED_EVENT_CHARGE : 1;
 
         double ordinaryTickets = basePrice * eventCharge * (seats.size() - numOfVipSeats);
-        double vipTickets = basePrice * VIP_SEAT_CHARGE * eventCharge * numOfVipSeats;
+        double vipTickets = basePrice * Event.VIP_SEAT_CHARGE * eventCharge * numOfVipSeats;
 
         return (ordinaryTickets + vipTickets) * (100 - discount) / 100;
     }

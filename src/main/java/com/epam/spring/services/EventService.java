@@ -17,4 +17,7 @@ public interface EventService {
     List<Event> getNextEvents(LocalDate to);
     Event addNewTimeForEvent(Long eventId, LocalDateTime time, Auditorium auditorium);
     void clear();
+    int getEventCount(String eventName);
+    int getEventChecksCount(String eventName);
+    int getEventBookings(String eventName);
 }

@@ -1,7 +1,9 @@
 package com.epam.spring.services;
 
+import com.epam.spring.aspects.CounterAspect;
 import com.epam.spring.domain.Auditorium;
 import com.epam.spring.domain.Event;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -13,6 +15,9 @@ import java.util.concurrent.atomic.AtomicLong;
 public class EventServiceImpl implements EventService {
     private static AtomicLong ID_SEQUENCE = new AtomicLong(1);
     private static Map<Long, Event> events = new HashMap<>();
+
+    @Autowired
+    private CounterAspect counterAspect;
 
     @Override
     public Event save(Event event) {
@@ -89,5 +94,20 @@ public class EventServiceImpl implements EventService {
     @Override
     public void clear() {
         events.clear();
+    }
+
+    @Override
+    public int getEventCount(String eventName) {
+        return counterAspect.getEventCount(eventName);
+    }
+
+    @Override
+    public int getEventChecksCount(String eventName) {
+        return counterAspect.getEventPriceChecks(eventName);
+    }
+
+    @Override
+    public int getEventBookings(String eventName) {
+        return counterAspect.getEventBookingsCount(eventName);
     }
 }

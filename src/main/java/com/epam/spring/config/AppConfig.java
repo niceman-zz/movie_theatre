@@ -5,10 +5,7 @@ import com.epam.spring.services.AuditoriumServiceImpl;
 import com.epam.spring.services.UserService;
 import com.epam.spring.services.UserServiceImpl;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
 
@@ -18,6 +15,7 @@ import java.util.Properties;
 @Configuration
 @ComponentScan(basePackages = "com.epam.spring")
 @Import({DiscountsConfig.class})
+@EnableAspectJAutoProxy
 public class AppConfig {
     @Bean
     public static Properties auditoriumProperties() throws IOException {

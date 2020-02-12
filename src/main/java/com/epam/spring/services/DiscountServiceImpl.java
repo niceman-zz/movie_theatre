@@ -18,18 +18,12 @@ public class DiscountServiceImpl implements DiscountService {
     @Override
     public int getDiscount(Event event, LocalDateTime dateTime, User user, Set<Integer> seats) {
         int discount = 0;
+        DiscountStrategy resultingStrategy = null; // just for the sake of the task with aspects
         for (DiscountStrategy strategy: discountStrategies) {
             if (strategy.isEligible(user, seats.size(), dateTime)) {
-                discount = Math.max(discount, calculateEffectiveDiscount(strategy));
+                discount = Math.max(discount, strategy.getEffectiveDiscount(event.getEventTimetable().get(dateTime), seats));
             }
         }
         return discount;
-    }
-
-    private int calculateEffectiveDiscount(DiscountStrategy strategy) {
-        if (strategy.isDiscountAll()) {
-            return strategy.getDiscount();
-        }
-        return strategy.getDiscount() / strategy.getDiscountThreshold(); // it's incorrect but just for simplicity
     }
 }
