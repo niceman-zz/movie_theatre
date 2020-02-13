@@ -1,5 +1,7 @@
 package com.epam.spring.services;
 
+import com.epam.spring.aspects.DiscountAspect;
+import com.epam.spring.discount.DiscountStrategy;
 import com.epam.spring.domain.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,7 +28,8 @@ public class BookingServiceImpl implements BookingService {
         }
         Auditorium auditorium = event.getEventTimetable().get(eventTime);
         int numOfVipSeats = findVipSeats(auditorium, seats);
-        int discount = discountService.getDiscount(event, eventTime, user, seats);
+        DiscountStrategy discountStrategy = discountService.getDiscount(event, eventTime, user, seats);
+        int discount = discountStrategy.getEffectiveDiscount(auditorium, seats);
         double basePrice = event.getPrice();
         double eventCharge = event.getRating() == Rating.HIGH ? HIGH_RANKED_EVENT_CHARGE : 1;
 

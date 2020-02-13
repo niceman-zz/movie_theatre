@@ -1,6 +1,7 @@
 package com.epam.spring;
 
 import com.epam.spring.config.AppConfig;
+import com.epam.spring.discount.DiscountStrategy;
 import com.epam.spring.domain.*;
 import com.epam.spring.services.*;
 import org.springframework.context.ApplicationContext;
@@ -102,6 +103,7 @@ public class Main {
 
         UserService userService = context.getBean(UserService.class);
         User kamaz = userService.getByEmail("kamaz@othodov.net");
+        User zagon = userService.getByEmail("zagon@baranov.net");
 
         EventService eventService = context.getBean(EventService.class);
         Event bi2 = eventService.getByName("Bi-2");
@@ -113,9 +115,9 @@ public class Main {
                 discountService.getDiscount(bi2, bi2.getEventTimetable().firstKey(), kamaz, seats));
         System.out.println();
         seats.addAll(Arrays.asList(5, 6, 7, 8, 9, 10));
-        System.out.println("Now he wants to buy 10 tickets to the same concert");
+        System.out.println("Now Zagon wants to buy 10 tickets to the same concert");
         System.out.println("His discount is (should be 4 as we have only int discounts): " +
-                discountService.getDiscount(bi2, bi2.getEventTimetable().firstKey(), kamaz, seats));
+                discountService.getDiscount(bi2, bi2.getEventTimetable().firstKey(), zagon, seats));
         System.out.println();
         System.out.println("Kamaz's wife asked him to buy also 2 tickets for the concert in April");
         seats.clear();
@@ -128,6 +130,22 @@ public class Main {
         seats.addAll(Arrays.asList(3, 4, 5, 6, 7, 8, 9, 10));
         System.out.println("His discount is (should be 30 as combo discount): " +
                 discountService.getDiscount(bi2, bi2.getEventTimetable().lastKey(), kamaz, seats));
+        System.out.println();
+
+        System.out.println("Discounts applied:");
+        List<DiscountStrategy> discountStrategies = discountService.getAllStrategies();
+        discountStrategies.forEach(strategy -> System.out.println(strategy.getClass().getSimpleName() + ": "
+                + discountService.getDiscountCounter(strategy)));
+        System.out.println();
+
+        System.out.println("Discounts by user:");
+        discountStrategies.forEach(strategy -> {
+            System.out.println(strategy.getClass().getSimpleName());
+            System.out.println(String.format("%s: %d, %s: %d", kamaz.getFullName(),
+                    discountService.getDiscountCounterByUser(strategy, kamaz), zagon.getFullName(),
+                    discountService.getDiscountCounterByUser(strategy, zagon)));
+        });
+
     }
 
     private static void testBooking(ApplicationContext context) {
