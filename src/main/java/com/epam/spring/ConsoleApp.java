@@ -68,7 +68,8 @@ public class ConsoleApp {
                 "add-user -- add new user\n" +
                 "user-by-id -- get user by id\n" +
                 "user-by-email -- get user by email\n" +
-                "remove-user -- remove user\n\n" +
+                "remove-user -- remove user\n" +
+                "check-lucky -- show lucky winner messages for a user\n\n" +
                 "\t\tEvents\n" +
                 "list-events -- show all events\n" +
                 "add-event -- add new events\n" +
@@ -94,6 +95,7 @@ public class ConsoleApp {
             case "user-by-id": showUserById(); break;
             case "user-by-email": showUserByEmail(); break;
             case "remove-user": removeUser(); break;
+            case "check-lucky": checkLucky(); break;
             case "list-events": showEvents(); break;
             case "add-event": addEvent(); break;
             case "add-event-time": addEventTime(); break;
@@ -233,6 +235,18 @@ public class ConsoleApp {
             userService.remove(usersMap.get(userNumber));
             System.out.println("User has been deleted.");
         }
+    }
+
+    private void checkLucky() {
+        System.out.println("Select user");
+        User user = selectUser();
+        if (user == null) {
+            return;
+        }
+        if (user.getLuckyWinnerMessages().isEmpty()) {
+            System.out.println(user.getFullName() + " didn't win any tickets yet.");
+        }
+        user.getLuckyWinnerMessages().forEach(System.out::println);
     }
 
     private void showEvents() {

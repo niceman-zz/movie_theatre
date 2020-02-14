@@ -66,6 +66,13 @@ public class BookingServiceImpl implements BookingService {
         ticketsForThisEvent.addAll(tickets);
 
         saveTicketsToOwner(tickets);
+        if (ticketForData.getOwner().isLucky()) {
+            ticketForData.getOwner().setLucky(false); // just in case
+            StringBuilder message = new StringBuilder("You've got your tickets for free! List of the tickets:\n");
+            tickets.forEach(message::append);
+            ticketForData.getOwner().getLuckyWinnerMessages().add(message.toString());
+            System.out.println("You're lucky bastard! Get your tickets for free!!!"); // nothing else as we don't actually book tickets
+        }
     }
 
     private static void checkOwner(Set<Ticket> tickets) {

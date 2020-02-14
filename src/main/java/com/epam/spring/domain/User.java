@@ -1,9 +1,7 @@
 package com.epam.spring.domain;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class User {
     private Long id;
@@ -11,6 +9,8 @@ public class User {
     private String lastName;
     private LocalDate birthday;
     private Set<Ticket> tickets;
+    private List<String> luckyWinnerMessages;
+    private boolean lucky;
 
     public User(String firstName, String lastName, String email, LocalDate birthday) {
         this.firstName = firstName;
@@ -18,6 +18,7 @@ public class User {
         this.email = email;
         this.birthday = birthday;
         tickets = new HashSet<>();
+        luckyWinnerMessages = new ArrayList<>();
     }
 
     private String email;
@@ -96,5 +97,17 @@ public class User {
     @Override
     public int hashCode() {
         return Objects.hash(id, firstName, lastName, birthday, email);
+    }
+
+    public boolean isLucky() {
+        return lucky;
+    }
+
+    public void setLucky(boolean lucky) {
+        this.lucky = lucky;
+    }
+
+    public List<String> getLuckyWinnerMessages() {
+        return luckyWinnerMessages;
     }
 }
