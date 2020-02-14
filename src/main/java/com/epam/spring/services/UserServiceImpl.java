@@ -1,6 +1,7 @@
 package com.epam.spring.services;
 
 import com.epam.spring.domain.User;
+import com.epam.spring.exceptions.MovieTheatreException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +16,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User add(User user) {
         if (getByEmail(user.getEmail()) != null) {
-            throw new IllegalArgumentException("User with this email already exists: " + user.getEmail());
+            throw new MovieTheatreException("User with this email already exists: " + user.getEmail());
         }
         user.setId(ID_SEQUENCE.getAndIncrement());
         users.put(user.getId(), user);
@@ -25,7 +26,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void update(User user) {
         if (user.getId() == null || !users.containsKey(user.getId())) {
-            throw new IllegalArgumentException("Can't update unregistered user: " + user.getFullName());
+            throw new MovieTheatreException("Can't update unregistered user: " + user.getFullName());
         }
         users.replace(user.getId(), user);
     }

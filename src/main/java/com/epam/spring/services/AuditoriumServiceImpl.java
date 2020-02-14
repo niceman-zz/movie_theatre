@@ -1,6 +1,7 @@
 package com.epam.spring.services;
 
 import com.epam.spring.domain.Auditorium;
+import com.epam.spring.exceptions.MovieTheatreException;
 
 import java.util.*;
 
@@ -34,7 +35,7 @@ public class AuditoriumServiceImpl implements AuditoriumService {
 
     private static Auditorium createAuditorium(String name, String seatsNumber, String vipSeats) {
         if (name == null || seatsNumber == null) {
-            throw new IllegalArgumentException("Check auditorium properties files: all auditoriums must contain name and seats number.");
+            throw new MovieTheatreException("Check auditorium properties files: all auditoriums must contain name and seats number.");
         }
         int seatsNumberNumeric = Integer.parseInt(seatsNumber);
         Set<Integer> vipSeatsSet;

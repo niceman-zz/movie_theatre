@@ -3,6 +3,7 @@ package com.epam.spring.services;
 import com.epam.spring.domain.Auditorium;
 import com.epam.spring.domain.Event;
 import com.epam.spring.domain.Rating;
+import com.epam.spring.exceptions.MovieTheatreException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +46,7 @@ public class EventServiceTest {
     @Test
     public void shouldNotCreateEventWithSameName() {
         eventService.save(new Event("Concert", null, 1000.0, Rating.MID));
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(MovieTheatreException.class,
                 () -> eventService.save(new Event("Concert", null, 2000.0, Rating.LOW)));
 
     }

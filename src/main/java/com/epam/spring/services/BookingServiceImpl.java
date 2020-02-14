@@ -1,6 +1,7 @@
 package com.epam.spring.services;
 
 import com.epam.spring.domain.*;
+import com.epam.spring.exceptions.MovieTheatreException;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -53,6 +54,7 @@ public class BookingServiceImpl implements BookingService {
             return;
         }
         checkOwner(tickets);
+        checkBookedTickets(tickets);
 
         Ticket ticketForData = tickets.iterator().next();
         Map<LocalDateTime, List<Ticket>> allTicketsForEvent =
@@ -68,8 +70,25 @@ public class BookingServiceImpl implements BookingService {
         User owner = tickets.iterator().next().getOwner();
         for (Ticket ticket: tickets) {
             if (!owner.equals(ticket.getOwner())) {
-                throw new IllegalArgumentException("Can't book tickets for different users in one operation.");
+                throw new MovieTheatreException("Can't book tickets for different users in one operation.");
             }
+        }
+    }
+
+    private static void checkBookedTickets(Set<Ticket> tickets) {
+        Ticket forData = tickets.iterator().next();
+        List<Ticket> alreadyBooked = bookedTickets.getOrDefault(forData.getEvent(), Collections.emptyMap()).get(forData.getEventTime());
+        if (alreadyBooked == null || alreadyBooked.isEmpty()) {
+            return;
+        }
+        List<Integer> bookedSeats = new ArrayList<>();
+        for (Ticket ticket : tickets) {
+            if (alreadyBooked.contains(ticket)) {
+                bookedSeats.add(ticket.getSeat());
+            }
+        }
+        if (!bookedSeats.isEmpty()) {
+            throw new MovieTheatreException("Can't book tickets as these tickets are already booked: " + bookedSeats);
         }
     }
 
