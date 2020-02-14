@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -24,6 +25,7 @@ import static org.hamcrest.Matchers.is;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {AppConfig.class})
+@DirtiesContext
 public class DiscountServiceTest {
     @Autowired
     private DiscountService discountService;

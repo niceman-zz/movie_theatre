@@ -2,8 +2,8 @@ package com.epam.spring.services;
 
 import com.epam.spring.config.AppConfig;
 import com.epam.spring.domain.User;
+import com.epam.spring.exceptions.MovieTheatreException;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +41,7 @@ public class UserServiceTest {
     @Test
     public void shouldNotCreateAnotherUserWithSameEmail() {
         userService.add(new User("Kamaz", "Othodov", "kamaz@othodov.net", LocalDate.of(1983, 4, 4)));
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(MovieTheatreException.class,
                 () -> userService.add(new User("Ushat", "Pomoev", "kamaz@othodov.net", LocalDate.of(1988, 8, 8))));
     }
 
@@ -103,10 +103,10 @@ public class UserServiceTest {
         User user = new User("Kamaz", "Othodov", "kamaz@othodov.net", LocalDate.of(1983, 4, 4));
         userService.add(user);
         User another = new User("I", "Don't", "exist", LocalDate.of(1, 1, 1));
-        assertThrows(IllegalArgumentException.class, () -> userService.update(another));
+        assertThrows(MovieTheatreException.class, () -> userService.update(another));
 
         another.setId(-1L);
-        assertThrows(IllegalArgumentException.class, () -> userService.update(another));
+        assertThrows(MovieTheatreException.class, () -> userService.update(another));
     }
 
     @Test

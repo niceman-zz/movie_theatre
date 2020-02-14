@@ -3,6 +3,7 @@ package com.epam.spring.services;
 import com.epam.spring.aspects.CounterAspect;
 import com.epam.spring.domain.Auditorium;
 import com.epam.spring.domain.Event;
+import com.epam.spring.exceptions.MovieTheatreException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +23,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public Event save(Event event) {
         if (getByName(event.getName()) != null) {
-            throw new IllegalArgumentException("Event with this name already exists: " + event.getName());
+            throw new MovieTheatreException("Event with this name already exists: " + event.getName());
         }
         event.setId(ID_SEQUENCE.getAndIncrement());
         events.put(event.getId(), event);
@@ -76,7 +77,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public Event addNewTimeForEvent(Long eventId, LocalDateTime time, Auditorium auditorium) {
         if (!events.containsKey(eventId)) {
-            throw new IllegalArgumentException("There's no event with ID " + eventId + " in the system");
+            throw new MovieTheatreException("There's no event with ID " + eventId + " in the system");
         }
         Event event = events.get(eventId);
         event.getEventTimetable().put(time, auditorium);

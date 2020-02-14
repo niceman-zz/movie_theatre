@@ -3,6 +3,7 @@ package com.epam.spring;
 import com.epam.spring.config.AppConfig;
 import com.epam.spring.discount.DiscountStrategy;
 import com.epam.spring.domain.*;
+import com.epam.spring.exceptions.MovieTheatreException;
 import com.epam.spring.services.*;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -50,7 +51,11 @@ public class ConsoleApp {
 
         do {
             System.out.print("> ");
-            eval(scanner.nextLine());
+            try {
+                eval(scanner.nextLine());
+            } catch (MovieTheatreException e) {
+                System.out.println(e.getMessage());
+            }
         } while (true);
     }
 
@@ -368,8 +373,8 @@ public class ConsoleApp {
                 return null;
             }
             try {
-                return Rating.valueOf(input);
-            } catch (IllegalArgumentException e) {
+                return Rating.valueOf(input.toUpperCase());
+            } catch (MovieTheatreException e) {
                 System.out.println("Enter rating exactly as it appears (or 'cancel' to return to main menu)");
             }
         } while (true);
