@@ -2,6 +2,7 @@ package com.epam.spring.services;
 
 import com.epam.spring.config.AppConfig;
 import com.epam.spring.domain.*;
+import com.epam.spring.exceptions.MovieTheatreException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {AppConfig.class})
@@ -171,5 +173,20 @@ public class BookingServiceTest {
         assertThat(user.getTickets().iterator().next(), is(ticket));
         assertThat(user.getTickets().equals(copy.getTickets()), is(true));
         userService.clear();
+    }
+
+    @Test
+    public void shouldNotAllowBookAlreadyBookedTickets() {
+        LocalDateTime time = event.getEventTimetable().firstKey();
+        Ticket tkt1 = new Ticket(event, 1, time, user);
+        Ticket tkt2 = new Ticket(event, 2, time, user);
+        bookingService.bookTickets(new HashSet<>(Arrays.asList(tkt1, tkt2)));
+
+        Ticket tkt3 = new Ticket(event, 2, time, user);
+        Ticket tkt4 = new Ticket(event, 3, time, user);
+
+        MovieTheatreException exception = assertThrows(MovieTheatreException.class,
+                () -> bookingService.bookTickets(new HashSet<>(Arrays.asList(tkt3, tkt4))));
+        assertThat(exception.getMessage().contains("[2]"), is(true));
     }
 }
