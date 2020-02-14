@@ -1,6 +1,7 @@
 package com.epam.spring;
 
 import com.epam.spring.config.AppConfig;
+import com.epam.spring.discount.DiscountStrategy;
 import com.epam.spring.domain.*;
 import com.epam.spring.services.*;
 import org.springframework.context.ApplicationContext;
@@ -31,12 +32,14 @@ public class ConsoleApp {
     final BookingService bookingService;
     final EventService eventService;
     final UserService userService;
+    final DiscountService discountService;
 
     ConsoleApp(ApplicationContext context) {
         auditoriumService = context.getBean(AuditoriumService.class);
         bookingService = context.getBean(BookingService.class);
         eventService = context.getBean(EventService.class);
         userService = context.getBean(UserService.class);
+        discountService = context.getBean(DiscountService.class);
     }
 
     public void run() {
@@ -73,7 +76,8 @@ public class ConsoleApp {
                 "\t\tBooking\n" +
                 "check-price -- calculates price for tickets\n" +
                 "book-tickets -- book tickets\n" +
-                "check-bookings - show bookings for some event";
+                "check-bookings -- show bookings for some event\n" +
+                "check-discounts -- show discounts that were applied during tickets price calculation";
     }
 
     private void eval(String command) {
@@ -95,6 +99,7 @@ public class ConsoleApp {
             case "next-events": showNextEvents(); break;
             case "check-price": case "book-tickets": checkPrice(); break;
             case "check-bookings": checkBookings(); break;
+            case "check-discounts": checkDiscounts(); break;
             case "menu": System.out.println(mainMenu()); break;
             case "exit": exit();
             default: System.out.println("Unknown command");
@@ -655,6 +660,34 @@ public class ConsoleApp {
             }
             System.out.println("Wrong input! Enter 'y' to confirm the action or 'n' to cancel.");
         } while (true);
+    }
+
+    private void checkDiscounts() {
+        System.out.println("Select discount to check:");
+        List<DiscountStrategy> strategies = discountService.getAllStrategies();
+        Map<Integer, DiscountStrategy> strategiesMap = new HashMap<>();
+        int i = 1;
+        for (DiscountStrategy strategy : strategies) {
+            System.out.println(i + ". " + strategy.getClass().getSimpleName());
+            strategiesMap.put(i++, strategy);
+        }
+        Integer selection = selectInteger(strategiesMap::containsKey);
+        if (selection == null) {
+            return;
+        }
+        DiscountStrategy selectedStrategy = strategiesMap.get(selection);
+        if (confirmAction("Do you want to see it only for a particular user?")) {
+            User user = selectUser();
+            if (user == null) {
+                return;
+            }
+            System.out.println(String.format("%s was applied for %s %d time(s)",
+                    selectedStrategy.getClass().getSimpleName(), user.getFullName(),
+                    discountService.getDiscountCounterByUser(selectedStrategy, user)));
+            return;
+        }
+        System.out.println(String.format("%s was applied %d time(s)", selectedStrategy.getClass().getSimpleName(),
+                discountService.getDiscountCounter(selectedStrategy)));
     }
 
     private void exit() {
