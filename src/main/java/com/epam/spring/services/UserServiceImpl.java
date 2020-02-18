@@ -48,8 +48,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void update(User user) {
-        jdbcTemplate.update("update users set first_name = ?, last_name = ?, email = ?, birthday = ? where id = ?",
-                user.getFirstName(), user.getLastName(), user.getEmail(), user.getBirthday(), user.getId());
+        int updated = jdbcTemplate.update("update users set first_name = ?, last_name = ?, email = ?, birthday = ? where id = ?",
+                user.getFirstName(), user.getLastName(), user.getEmail(), Date.valueOf(user.getBirthday()), user.getId());
+        if (updated == 0) {
+            throw new MovieTheatreException("Can't update unregistered user: " + user.getFullName());
+        }
     }
 
     @Override
@@ -97,7 +100,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean isRegistered(User user) {
-        return false;
+        if (user == null || user.getId() == null) {
+            return false;
+        }
+        Integer userCount = jdbcTemplate.queryForObject("select count(id) from users where id = ?",
+                new Object[] {user.getId()}, Integer.class);
+        return userCount == 1;
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.epam.spring;
 import com.epam.spring.config.AppConfig;
 import com.epam.spring.discount.DiscountStrategy;
 import com.epam.spring.domain.*;
+import com.epam.spring.exceptions.AlreadyBookedException;
 import com.epam.spring.services.*;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws AlreadyBookedException {
         ConfigurableApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
         List<Auditorium> auditoriums = testAuditoriumService(context);
         System.out.println("------------------------------------------------");
@@ -153,7 +154,7 @@ public class Main {
 
     }
 
-    private static void testBooking(ApplicationContext context) {
+    private static void testBooking(ApplicationContext context) throws AlreadyBookedException {
         User user = context.getBean(UserService.class).getById(1);
         EventService eventService = context.getBean(EventService.class);
         Event bi2 = eventService.getByName("Bi-2");

@@ -1,6 +1,7 @@
 package com.epam.spring.aspects;
 
 import com.epam.spring.discount.DiscountStrategy;
+import com.epam.spring.discount.NoDiscountStrategy;
 import com.epam.spring.domain.User;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -25,6 +26,9 @@ public class DiscountAspect {
     public void countDiscounts(JoinPoint joinPoint, DiscountStrategy strategy) {
         if (!discountsCounter.containsKey(strategy)) {
             discountsCounter.put(strategy, new HashMap<>());
+        }
+        if (strategy != NoDiscountStrategy.instance()) {
+            System.out.println("You've got discount! (" + strategy.getClass().getSimpleName() + ")");
         }
         for (Object arg : joinPoint.getArgs()) {
             if (arg instanceof User) {

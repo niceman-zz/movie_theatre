@@ -2,12 +2,14 @@ package com.epam.spring.aspects;
 
 import com.epam.spring.config.AppConfig;
 import com.epam.spring.domain.*;
+import com.epam.spring.exceptions.AlreadyBookedException;
 import com.epam.spring.services.AuditoriumService;
 import com.epam.spring.services.BookingService;
 import com.epam.spring.services.EventService;
 import com.epam.spring.services.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,13 +46,18 @@ public class CounterAspectTest {
 
     @BeforeAll
     public static void init() {
-        user = new User("Putin", "Schmutin", "putin@schmutin.ru", LocalDate.of(1952, 10, 7));
         auditorium = new Auditorium("Big hall", 300, new HashSet<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9)));
+    }
+
+    @BeforeEach
+    public void bootstrap() {
+        user = userService.add(new User("Putin", "Schmutin", "putin@schmutin.ru", LocalDate.of(1952, 10, 7)));
     }
 
     @AfterEach
     public void clean() {
         eventService.clear();
+        userService.clear();
     }
 
     @Test
@@ -80,7 +87,7 @@ public class CounterAspectTest {
     }
 
     @Test
-    public void testBookingsCounter() {
+    public void testBookingsCounter() throws AlreadyBookedException {
         Event event = eventService.save(new Event("Concert", LocalDateTime.now(), auditorium, 1000.0, Rating.MID));
         Event event2 = eventService.save(new Event("Circus", LocalDateTime.now().plusDays(1), auditorium, 1000.0, Rating.MID));
         Ticket ticket = new Ticket(event, 1, event.getEventTimetable().firstKey(), user);

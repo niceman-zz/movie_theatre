@@ -151,7 +151,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public Event addNewTimeForEvent(Long eventId, LocalDateTime time, Auditorium auditorium) {
         jdbcTemplate.update("insert into event_timetables (event_id, event_time, auditorium) values (?, ?, ?)",
-                eventId, time, auditorium);
+                eventId, Timestamp.valueOf(time), auditorium.getName());
         return getById(eventId);
     }
 

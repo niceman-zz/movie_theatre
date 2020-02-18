@@ -79,7 +79,7 @@ public class EventServiceTest {
         Event toDelete = eventService.save(new Event("Football", null, 500.0, Rating.LOW));
         eventService.remove(toDelete);
         assertThat(eventService.getAll().size(), is(1));
-        assertThat(eventService.getAll().get(0), is(toKeep));
+        assertThat(eventService.getAll().get(0), equalTo(toKeep));
     }
 
     @Test

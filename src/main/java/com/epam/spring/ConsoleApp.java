@@ -3,6 +3,7 @@ package com.epam.spring;
 import com.epam.spring.config.AppConfig;
 import com.epam.spring.discount.DiscountStrategy;
 import com.epam.spring.domain.*;
+import com.epam.spring.exceptions.AlreadyBookedException;
 import com.epam.spring.exceptions.MovieTheatreException;
 import com.epam.spring.services.*;
 import org.springframework.context.ApplicationContext;
@@ -193,11 +194,11 @@ public class ConsoleApp {
                     return;
                 }
                 User user = userService.getById(userId);
-                if (user == null) {
-                    System.out.println("There's no user with ID " + userId + ". Try again");
+                if (user != null) {
+                    System.out.println(user);
+                    return;
                 }
-                System.out.println(user);
-                return;
+                System.out.println("There's no user with ID " + userId + ". Try again");
             } catch (InputMismatchException e) {
                 scanner.nextLine();
                 System.out.println("User ID must consist of digits only. Try again");
@@ -521,21 +522,31 @@ public class ConsoleApp {
         if (user == null) {
             return;
         }
-        Set<Integer> seats = getSeats();
-        if (seats == null) {
-            return;
-        }
-        double price = bookingService.getTicketsPrice(event, date, user, seats);
-        System.out.println("Price details:");
-        System.out.println("Event: " + event.getName());
-        System.out.println("Date: " + date);
-        System.out.println("User: " + user.getFullName());
-        System.out.println("Seats: " + seats);
-        System.out.println("--------------------------");
-        System.out.println("Total price: " + price);
-        System.out.println();
-        if (confirmAction(String.format("Would you like to book %s?", seats.size() == 1 ? "a ticket" : "these tickets"))) {
-            bookTickets(event, date, user, seats);
+        while (true) {
+            Set<Integer> seats = getSeats();
+            if (seats == null) {
+                return;
+            }
+            double price = bookingService.getTicketsPrice(event, date, user, seats);
+            System.out.println("Price details:");
+            System.out.println("Event: " + event.getName());
+            System.out.println("Date: " + date);
+            System.out.println("User: " + user.getFullName());
+            System.out.println("Seats: " + seats);
+            System.out.println("--------------------------");
+            System.out.println("Total price: " + price);
+            System.out.println();
+            if (confirmAction(String.format("Would you like to book %s?", seats.size() == 1 ? "a ticket" : "these tickets"))) {
+                try {
+                    bookTickets(event, date, user, seats);
+                    return;
+                } catch (AlreadyBookedException e) {
+                    System.out.println(e.getMessage());
+                    if (!confirmAction("Would you like to enter other seats?")) {
+                        return;
+                    }
+                }
+            }
         }
     }
 
@@ -637,7 +648,7 @@ public class ConsoleApp {
         } while (true);
     }
 
-    private void bookTickets(Event event, LocalDateTime date, User user, Set<Integer> seats) {
+    private void bookTickets(Event event, LocalDateTime date, User user, Set<Integer> seats) throws AlreadyBookedException {
         Set<Ticket> tickets = new HashSet<>();
         seats.forEach(seat -> tickets.add(new Ticket(event, seat, date, user)));
         bookingService.bookTickets(tickets);

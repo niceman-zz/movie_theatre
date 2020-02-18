@@ -3,6 +3,7 @@ package com.epam.spring.services;
 import com.epam.spring.discount.DiscountStrategy;
 import com.epam.spring.domain.*;
 import com.epam.spring.domain.rowmappers.TicketRowMapper;
+import com.epam.spring.exceptions.AlreadyBookedException;
 import com.epam.spring.exceptions.MovieTheatreException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -62,7 +63,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public void bookTickets(Set<Ticket> tickets) {
+    public void bookTickets(Set<Ticket> tickets) throws AlreadyBookedException {
         if (tickets == null || tickets.isEmpty()) {
             return;
         }
@@ -93,7 +94,7 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private void checkBookedTickets(Set<Ticket> tickets) {
+    private void checkBookedTickets(Set<Ticket> tickets) throws AlreadyBookedException {
         StringJoiner joiner = new StringJoiner(", ", "(", ")");
         tickets.forEach(ticket -> joiner.add(String.valueOf(ticket.getSeat())));
 
@@ -106,7 +107,7 @@ public class BookingServiceImpl implements BookingService {
         List<Integer> bookedSeats = jdbcTemplate.queryForList(query,
                 new Object[] {forData.getEvent().getId(), Timestamp.valueOf(forData.getEventTime())}, Integer.class);
         if (!bookedSeats.isEmpty()) {
-            throw new MovieTheatreException("Can't book tickets as these tickets are already booked: " + bookedSeats);
+            throw new AlreadyBookedException("Can't book tickets as these tickets are already booked: " + bookedSeats);
         }
     }
 
