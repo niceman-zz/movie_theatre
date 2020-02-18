@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Set;
 
 public interface BookingService {
+    static final double HIGH_RANKED_EVENT_CHARGE = 1.2;
+
     double getTicketsPrice(Event event, LocalDateTime eventTime, User user, Set<Integer> seats);
     void bookTickets(Set<Ticket> tickets);
     List<Ticket> getPurchasedTicketsForEvent(Event event, LocalDateTime dateTime);

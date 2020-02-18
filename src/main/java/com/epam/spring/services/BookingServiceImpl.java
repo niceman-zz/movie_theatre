@@ -2,18 +2,29 @@ package com.epam.spring.services;
 
 import com.epam.spring.discount.DiscountStrategy;
 import com.epam.spring.domain.*;
+import com.epam.spring.domain.rowmappers.TicketRowMapper;
 import com.epam.spring.exceptions.MovieTheatreException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
 
 @Component
+@Transactional
 public class BookingServiceImpl implements BookingService {
     private static final double HIGH_RANKED_EVENT_CHARGE = 1.2;
 
     private static final Map<Event, Map<LocalDateTime, List<Ticket>>> bookedTickets = new HashMap<>();
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private DiscountService discountService;
@@ -58,21 +69,19 @@ public class BookingServiceImpl implements BookingService {
         checkOwner(tickets);
         checkBookedTickets(tickets);
 
-        Ticket ticketForData = tickets.iterator().next();
-        Map<LocalDateTime, List<Ticket>> allTicketsForEvent =
-                bookedTickets.computeIfAbsent(ticketForData.getEvent(), v -> new HashMap<>());
-        List<Ticket> ticketsForThisEvent =
-                allTicketsForEvent.computeIfAbsent(ticketForData.getEventTime(), v -> new ArrayList<>());
-        ticketsForThisEvent.addAll(tickets);
-
-        saveTicketsToOwner(tickets);
-        if (ticketForData.getOwner().isLucky()) {
-            ticketForData.getOwner().setLucky(false); // just in case
+        User user = tickets.iterator().next().getOwner();
+        if (user.isLucky()) {
+            user.setLucky(false); // just in case
             StringBuilder message = new StringBuilder("You've got your tickets for free! List of the tickets:\n");
             tickets.forEach(message::append);
-            ticketForData.getOwner().getLuckyWinnerMessages().add(message.toString());
+            saveLuckyWinner(user.getId(), message.toString());
+            user.getLuckyWinnerMessages().add(message.toString());
+
             System.out.println("You're lucky bastard! Get your tickets for free!!!"); // nothing else as we don't actually book tickets
         }
+
+        saveTickets(tickets);
+        user.getTickets().addAll(tickets);
     }
 
     private static void checkOwner(Set<Ticket> tickets) {
@@ -84,47 +93,55 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private static void checkBookedTickets(Set<Ticket> tickets) {
+    private void checkBookedTickets(Set<Ticket> tickets) {
+        StringJoiner joiner = new StringJoiner(", ", "(", ")");
+        tickets.forEach(ticket -> joiner.add(String.valueOf(ticket.getSeat())));
+
+        String query = "select t.seat " +
+                "from tickets t, events e, users u " +
+                "where t.event_id = e.id and t.user_id = u.id and t.event_id = ? and t.event_time = ? and t.seat in " +
+                joiner.toString();
+
         Ticket forData = tickets.iterator().next();
-        List<Ticket> alreadyBooked = bookedTickets.getOrDefault(forData.getEvent(), Collections.emptyMap()).get(forData.getEventTime());
-        if (alreadyBooked == null || alreadyBooked.isEmpty()) {
-            return;
-        }
-        List<Integer> bookedSeats = new ArrayList<>();
-        for (Ticket ticket : tickets) {
-            if (alreadyBooked.contains(ticket)) {
-                bookedSeats.add(ticket.getSeat());
-            }
-        }
+        List<Integer> bookedSeats = jdbcTemplate.queryForList(query,
+                new Object[] {forData.getEvent().getId(), Timestamp.valueOf(forData.getEventTime())}, Integer.class);
         if (!bookedSeats.isEmpty()) {
             throw new MovieTheatreException("Can't book tickets as these tickets are already booked: " + bookedSeats);
         }
     }
 
-    private void saveTicketsToOwner(Set<Ticket> tickets) {
-        User owner = tickets.iterator().next().getOwner();
-        if (userService.isRegistered(owner)) {
-            User fromStorage = userService.getById(owner.getId());
-            fromStorage.getTickets().addAll(tickets);
-            if (owner != fromStorage) {
-                owner.getTickets().addAll(tickets);
-            }
-        } else {
-            owner.getTickets().addAll(tickets);
-        }
+    private void saveTickets(Set<Ticket> tickets) {
+        Iterator<Ticket> it = tickets.iterator();
+        jdbcTemplate.batchUpdate("insert into tickets (event_id, event_time, seat, user_id) values (?, ?, ?, ?)",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                        Ticket ticket = it.next();
+                        preparedStatement.setLong(1, ticket.getEvent().getId());
+                        preparedStatement.setTimestamp(2, Timestamp.valueOf(ticket.getEventTime()));
+                        preparedStatement.setInt(3, ticket.getSeat());
+                        preparedStatement.setLong(4, ticket.getOwner().getId());
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return tickets.size();
+                    }
+                });
+    }
+
+    private void saveLuckyWinner(long userId, String message) {
+        jdbcTemplate.update("insert into lucky_winners (user_id, message) values (?, ?)", userId, message);
     }
 
     @Override
     public List<Ticket> getPurchasedTicketsForEvent(Event event, LocalDateTime dateTime) {
-        Map<LocalDateTime, List<Ticket>> allTicketsForEvent = bookedTickets.get(event);
-        if (allTicketsForEvent == null || allTicketsForEvent.isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<Ticket> particularDateTickets = allTicketsForEvent.get(dateTime);
-        if (particularDateTickets == null) {
-            return Collections.emptyList();
-        }
-        return particularDateTickets;
+        String query = "select t.event_id, t.event_time, t.seat, t.user_id, " +
+                "e.name as event_name, e.price as event_price, e.rating as event_rating, " +
+                "u.first_name as user_first_name, u.last_name as user_last_name, u.email as user_email, u.birthday as user_birthday " +
+                "from tickets t, events e, users u " +
+                "where t.event_id = e.id and t.user_id = u.id and t.event_id = ? and t.event_time = ?";
+        return jdbcTemplate.query(query, new Object[] {event.getId(), Timestamp.valueOf(dateTime)}, new TicketRowMapper());
     }
 
     @Override

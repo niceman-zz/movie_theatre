@@ -111,25 +111,30 @@ public class Main {
         System.out.println("Discounts");
         System.out.println("Kamaz wants to buy 4 tickets to Bi-2 concert on March 4, 2020");
         Set<Integer> seats = new LinkedHashSet<>(Arrays.asList(1, 2, 3, 4));
+        LocalDateTime time = bi2.getEventTimetable().firstKey();
+        Auditorium auditorium = bi2.getEventTimetable().get(time);
         System.out.println("His discount is (should be 0): " +
-                discountService.getDiscount(bi2, bi2.getEventTimetable().firstKey(), kamaz, seats));
+                discountService.getDiscount(bi2, time, kamaz, seats).getEffectiveDiscount(auditorium, seats));
         System.out.println();
         seats.addAll(Arrays.asList(5, 6, 7, 8, 9, 10));
         System.out.println("Now Zagon wants to buy 10 tickets to the same concert");
         System.out.println("His discount is (should be 4 as we have only int discounts): " +
-                discountService.getDiscount(bi2, bi2.getEventTimetable().firstKey(), zagon, seats));
+                discountService.getDiscount(bi2, time, zagon, seats).getEffectiveDiscount(auditorium, seats));
         System.out.println();
         System.out.println("Kamaz's wife asked him to buy also 2 tickets for the concert in April");
+
+        LocalDateTime anotherTime = bi2.getEventTimetable().lastKey();
+        Auditorium anotherAuditorium = bi2.getEventTimetable().get(anotherTime);
         seats.clear();
         seats.add(1);
         seats.add(2);
         System.out.println("His discount is (should be 10 as birthday discount):" +
-                discountService.getDiscount(bi2, bi2.getEventTimetable().lastKey(), kamaz, seats));
+                discountService.getDiscount(bi2, anotherTime, kamaz, seats).getEffectiveDiscount(anotherAuditorium, seats));
         System.out.println();
         System.out.println("But then he decided to invite all his friends again");
         seats.addAll(Arrays.asList(3, 4, 5, 6, 7, 8, 9, 10));
         System.out.println("His discount is (should be 30 as combo discount): " +
-                discountService.getDiscount(bi2, bi2.getEventTimetable().lastKey(), kamaz, seats));
+                discountService.getDiscount(bi2, anotherTime, kamaz, seats).getEffectiveDiscount(anotherAuditorium, seats));
         System.out.println();
 
         System.out.println("Discounts applied:");
