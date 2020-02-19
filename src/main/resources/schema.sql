@@ -1,5 +1,3 @@
-create schema aa;
-
 create table users (
     id INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
     first_name varchar(256),
