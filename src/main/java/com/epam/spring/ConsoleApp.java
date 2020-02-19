@@ -35,6 +35,7 @@ public class ConsoleApp {
     final EventService eventService;
     final UserService userService;
     final DiscountService discountService;
+    final EventCountersService eventCountersService;
 
     ConsoleApp(ApplicationContext context) {
         auditoriumService = context.getBean(AuditoriumService.class);
@@ -42,6 +43,7 @@ public class ConsoleApp {
         eventService = context.getBean(EventService.class);
         userService = context.getBean(UserService.class);
         discountService = context.getBean(DiscountService.class);
+        eventCountersService = context.getBean(EventCountersService.class);
     }
 
     public void run() {
@@ -83,7 +85,11 @@ public class ConsoleApp {
                 "\t\tBooking\n" +
                 "check-price -- calculates price for tickets\n" +
                 "book-tickets -- book tickets\n" +
-                "check-bookings -- show bookings for some event\n" +
+                "check-bookings -- show bookings for some event\n\n" +
+                "\t\tAspects\n" +
+                "event-name-counter -- show how many times an event was accessed by name\n" +
+                "event-price-check-counter -- show how many times event's price was queried\n" +
+                "event-booked-counter -- show how many times tickets for event were bought\n" +
                 "check-discounts -- show discounts that were applied during tickets price calculation";
     }
 
@@ -107,6 +113,9 @@ public class ConsoleApp {
             case "next-events": showNextEvents(); break;
             case "check-price": case "book-tickets": checkPrice(); break;
             case "check-bookings": checkBookings(); break;
+            case "event-name-counter": showEventNameCounter(); break;
+            case "event-price-check-counter": showEventCheckPriceCounter(); break;
+            case "event-booked-counter": showEventBookedCounter(); break;
             case "check-discounts": checkDiscounts(); break;
             case "menu": System.out.println(mainMenu()); break;
             case "exit": exit();
@@ -546,6 +555,8 @@ public class ConsoleApp {
                         return;
                     }
                 }
+            } else {
+                return;
             }
         }
     }
@@ -690,6 +701,33 @@ public class ConsoleApp {
             }
             System.out.println("Wrong input! Enter 'y' to confirm the action or 'n' to cancel.");
         } while (true);
+    }
+
+    private void showEventNameCounter() {
+        Event event = getEventFromInput();
+        if (event == null) {
+            return;
+        }
+        int counter = eventCountersService.getNameCounter(event.getId());
+        System.out.println("'" + event.getName() + "' was accessed by name " + counter + " time(s)");
+    }
+
+    private void showEventCheckPriceCounter() {
+        Event event = getEventFromInput();
+        if (event == null) {
+            return;
+        }
+        int counter = eventCountersService.getPriceCheckCounter(event.getId());
+        System.out.println("Prices for '" + event.getName() + "' were checked " + counter + " time(s)");
+    }
+
+    private void showEventBookedCounter() {
+        Event event = getEventFromInput();
+        if (event == null) {
+            return;
+        }
+        int counter = eventCountersService.getBookCounter(event.getId());
+        System.out.println("Tickets to '" + event.getName() + "' were booked " + counter + " time(s)");
     }
 
     private void checkDiscounts() {

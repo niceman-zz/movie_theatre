@@ -12,4 +12,12 @@ public class DaoUtils {
             return null;
         }
     }
+
+    public static <T> T getByField(String query, Object fieldValue, JdbcTemplate jdbcTemplate, Class<T> classObject) {
+        try {
+            return jdbcTemplate.queryForObject(query, new Object[] {fieldValue}, classObject);
+        } catch (EmptyResultDataAccessException stupidSpringDevelopers) {
+            return null;
+        }
+    }
 }

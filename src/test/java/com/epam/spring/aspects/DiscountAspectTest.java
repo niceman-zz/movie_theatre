@@ -8,10 +8,11 @@ import com.epam.spring.domain.Rating;
 import com.epam.spring.domain.User;
 import com.epam.spring.services.BookingService;
 import com.epam.spring.services.DiscountService;
+import com.epam.spring.services.UserService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -34,15 +35,25 @@ public class DiscountAspectTest {
     @Autowired
     private DiscountService discountService;
 
+    @Autowired
+    private UserService userService;
+
+    @AfterEach
+    private void clean() {
+        userService.clear();
+        bookingService.clear();
+    }
+
     @Test
-    @DirtiesContext
     public void shouldNotIncrementAnyDiscountCounter() {
         Set<Integer> seats = Collections.singleton(1);
-        User user = new User("Putin", "Schmutin", "putin@schmutin.ru", LocalDate.of(1952, 10, 7));
+        User user = userService.add(new User("Putin", "Schmutin", "putin@schmutin.ru", LocalDate.of(1952, 10, 7)));
         Auditorium auditorium = new Auditorium("Big hall", 300, new HashSet<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9)));
 
         Event event = new Event("Concert", LocalDateTime.of(2020, 5, 5, 5, 5), auditorium, 1000.0, Rating.MID);
+        event.setId(1L);
         Event event2 = new Event("Circus", LocalDateTime.of(2020, 6, 6, 6, 6), auditorium, 1000.0, Rating.MID);
+        event2.setId(2L);
         bookingService.getTicketsPrice(event, event.getEventTimetable().firstKey(), user, seats);
         bookingService.getTicketsPrice(event2, event2.getEventTimetable().firstKey(), user, seats);
         discountService.getAllStrategies().forEach(
@@ -50,15 +61,16 @@ public class DiscountAspectTest {
     }
 
     @Test
-    @DirtiesContext
     public void shouldIncrementBirthdayStrategyCounterForPutin() {
         Set<Integer> seats = Collections.singleton(1);
-        User putin = new User("Putin", "Schmutin", "putin@schmutin.ru", LocalDate.of(1952, 10, 7));
-        User medveded = new User("Preved", "Medved", "preved@medved.ru", LocalDate.of(1965, 9, 14));
+        User putin = userService.add(new User("Putin", "Schmutin", "putin@schmutin.ru", LocalDate.of(1952, 10, 7)));
+        User medveded = userService.add(new User("Preved", "Medved", "preved@medved.ru", LocalDate.of(1965, 9, 14)));
         Auditorium auditorium = new Auditorium("Big hall", 300, new HashSet<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9)));
 
         Event event = new Event("Concert", LocalDateTime.of(2020, 10, 5, 5, 5), auditorium, 1000.0, Rating.MID);
+        event.setId(1L);
         Event event2 = new Event("Circus", LocalDateTime.of(2020, 6, 6, 6, 6), auditorium, 1000.0, Rating.MID);
+        event2.setId(2L);
         bookingService.getTicketsPrice(event, event.getEventTimetable().firstKey(), putin, seats);
         bookingService.getTicketsPrice(event2, event2.getEventTimetable().firstKey(), medveded, seats);
 

@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -24,6 +25,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
+@Transactional
 public class EventServiceImpl implements EventService {
     private static final String BASE_SELECT = "select id, name, price, rating from events";
 
@@ -34,7 +36,7 @@ public class EventServiceImpl implements EventService {
     private AuditoriumService auditoriumService;
 
     @Autowired
-    private CounterAspect counterAspect;
+    private EventCountersService eventCountersService;
 
     @Override
     public Event save(Event event) {
@@ -55,6 +57,8 @@ public class EventServiceImpl implements EventService {
         event.setId(keyHolder.getKey().longValue());
 
         saveTimetable(event);
+        eventCountersService.addEventCounters(event.getId());
+
         return event;
     }
 
@@ -126,9 +130,10 @@ public class EventServiceImpl implements EventService {
     public List<Event> getForDateRange(LocalDate from, LocalDate to) {
         String select = "select e.name, e.price, e.rating, et.event_time, et.auditorium " +
                 "from events e, event_timetables et " +
-                "where e.id = et.event_id and et.event_time >= ? and et.event_time <= ?";
+                "where e.id = et.event_id and et.event_time >= ? and et.event_time <= ?" +
+                "order by et.event_time asc";
         List<Event> events = jdbcTemplate.query(select,
-                new Object[] {Timestamp.valueOf(from.atTime(LocalTime.now())), Timestamp.valueOf(to.atTime(23, 59, 59, 999_999_999))},
+                new Object[] {Timestamp.valueOf(from.atTime(0, 0, 0, 0)), Timestamp.valueOf(to.atTime(23, 59, 59, 999_999_999))},
                 (rs, index) -> {
                     Event event = new Event();
                     event.setName(rs.getString("name"));
@@ -158,20 +163,5 @@ public class EventServiceImpl implements EventService {
     @Override
     public void clear() {
         jdbcTemplate.update("delete from events");
-    }
-
-    @Override
-    public int getEventCount(String eventName) {
-        return counterAspect.getEventCount(eventName);
-    }
-
-    @Override
-    public int getEventChecksCount(String eventName) {
-        return counterAspect.getEventPriceChecks(eventName);
-    }
-
-    @Override
-    public int getEventBookings(String eventName) {
-        return counterAspect.getEventBookingsCount(eventName);
     }
 }

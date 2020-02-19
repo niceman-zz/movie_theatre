@@ -59,6 +59,7 @@ public class Main {
 
     static void testEventService(ApplicationContext context, List<Auditorium> auditoriums) {
         EventService eventService = context.getBean(EventService.class);
+        EventCountersService eventCountersService = context.getBean(EventCountersService.class);
 
         Event metallica = new Event("Metallica", LocalDateTime.of(2020, 1, 20, 21, 0), auditoriums.get(0), 4000, Rating.HIGH);
         Event bi2 = new Event("Bi-2", LocalDateTime.of(2020, 3, 4, 20, 0), auditoriums.get(0), 2000.0, Rating.HIGH);
@@ -95,8 +96,8 @@ public class Main {
         System.out.println("Let's check all events again");
         eventService.getAll().forEach(event -> System.out.println(event));
         System.out.println();
-        System.out.println("Zemfira was accessed by name " + eventService.getEventCount(zemfira.getName()) + " time(s)");
-        System.out.println("While Metallica only " + eventService.getEventCount(metallica.getName()) + " time(s)");
+        System.out.println("Zemfira was accessed by name " + eventCountersService.getNameCounter(zemfira.getId()) + " time(s)");
+        System.out.println("While Metallica only " + eventCountersService.getNameCounter(metallica.getId()) + " time(s)");
     }
 
     static void testDiscounts(ApplicationContext context) {
@@ -157,6 +158,8 @@ public class Main {
     private static void testBooking(ApplicationContext context) throws AlreadyBookedException {
         User user = context.getBean(UserService.class).getById(1);
         EventService eventService = context.getBean(EventService.class);
+        EventCountersService eventCountersService = context.getBean(EventCountersService.class);
+
         Event bi2 = eventService.getByName("Bi-2");
         Event zemfira = eventService.getByName("Zemfira");
         Set<Integer> seats = new HashSet<>();
@@ -205,12 +208,12 @@ public class Main {
         System.out.println("Let's check that we still have previously booked ticket: " +
                 bookingService.getPurchasedTicketsForEvent(bi2, bi2.getEventTimetable().firstKey()));
         System.out.println();
-        System.out.println("Prices to Bi-2 concerts were checked " + eventService.getEventChecksCount(bi2.getName())
+        System.out.println("Prices to Bi-2 concerts were checked " + eventCountersService.getPriceCheckCounter(bi2.getId())
                 + " time(s)");
-        System.out.println("Zemfira - " + eventService.getEventChecksCount(zemfira.getName()) + " time(s)");
+        System.out.println("Zemfira - " + eventCountersService.getPriceCheckCounter(zemfira.getId()) + " time(s)");
         System.out.println();
-        System.out.println("Tickets to Bi-2 concerts were booked " + eventService.getEventBookings(bi2.getName())
+        System.out.println("Tickets to Bi-2 concerts were booked " + eventCountersService.getBookCounter(bi2.getId())
                 + " time(s)");
-        System.out.println("Zemfira - " + eventService.getEventBookings(zemfira.getName()) + " time(s)");
+        System.out.println("Zemfira - " + eventCountersService.getBookCounter(zemfira.getId()) + " time(s)");
     }
 }

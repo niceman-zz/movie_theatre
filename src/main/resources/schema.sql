@@ -38,4 +38,19 @@ create table tickets (
 create table lucky_winners (
     user_id integer,
     message varchar(4000)
+);
+
+create table event_counters (
+    event_id integer,
+    name_counter integer,
+    price_check_counter integer,
+    book_counter integer,
+    foreign key (event_id) references events(id) on delete cascade
+);
+
+create table discount_counters (
+    discount_name varchar(128),
+    discount_counter integer,
+    user_id integer,
+    foreign key (user_id) references users(id) on delete cascade
 )

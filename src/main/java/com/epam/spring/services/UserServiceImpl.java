@@ -72,7 +72,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getAll() {
-        return jdbcTemplate.query(BASE_SELECT, new UserRowMapper());
+        List<User> users = jdbcTemplate.query(BASE_SELECT, new UserRowMapper());
+        users.forEach(this::getAdditionalUserInfo);
+
+        return users;
     }
 
     private User getByField(String fieldName, Object fieldValue) {
@@ -80,9 +83,13 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             return null;
         }
+        getAdditionalUserInfo(user);
+        return user;
+    }
+
+    private void getAdditionalUserInfo(User user) {
         user.getTickets().addAll(getTickets(user.getId()));
         user.getLuckyWinnerMessages().addAll(getLuckyWinnerMessages(user.getId()));
-        return user;
     }
 
     private List<Ticket> getTickets(long userId) {

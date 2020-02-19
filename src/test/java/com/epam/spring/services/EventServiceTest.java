@@ -151,4 +151,20 @@ public class EventServiceTest {
         assertThat(eventService.getAll().size(), is(1)); // didn't add new event
         assertThat(updatedEvent.getEventTimetable().size(), is(2)); // added new time to timetable of existing event
     }
+
+    @Test
+    public void boundaryDatesShouldBeIncludedIntoSearchResults() {
+        Auditorium auditorium = auditoriumService.getAll().get(0);
+        Event underLowerBound = eventService.save(new Event("1", LocalDateTime.of(2020, 3, 1, 20, 0), auditorium, 1000.0, Rating.MID));
+        Event lowerBound = eventService.save(new Event("2", LocalDateTime.of(2020, 3, 2, 20, 0), auditorium, 1000.0, Rating.MID));
+        Event middle = eventService.save(new Event("3", LocalDateTime.of(2020, 3, 3, 20, 0), auditorium, 1000.0, Rating.MID));
+        Event upperBound = eventService.save(new Event("4", LocalDateTime.of(2020, 3, 4, 20, 0), auditorium, 1000.0, Rating.MID));
+        Event aboveUpperBound = eventService.save(new Event("5", LocalDateTime.of(2020, 3, 5, 20, 0), auditorium, 1000.0, Rating.MID));
+
+        List<Event> eventsInRange = eventService.getForDateRange(LocalDate.of(2020, 3, 2), LocalDate.of(2020, 3, 4));
+        assertThat(eventsInRange.size(), is(3));
+        assertThat(eventsInRange.get(0).getEventTimetable().firstKey(), is(lowerBound.getEventTimetable().firstKey()));
+        assertThat(eventsInRange.get(1).getEventTimetable().firstKey(), is(middle.getEventTimetable().firstKey()));
+        assertThat(eventsInRange.get(2).getEventTimetable().firstKey(), is(upperBound.getEventTimetable().firstKey()));
+    }
 }
