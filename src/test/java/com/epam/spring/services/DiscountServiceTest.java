@@ -6,7 +6,9 @@ import com.epam.spring.domain.Auditorium;
 import com.epam.spring.domain.Event;
 import com.epam.spring.domain.Rating;
 import com.epam.spring.domain.User;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +29,15 @@ import static org.hamcrest.Matchers.is;
 @ContextConfiguration(classes = {AppConfig.class})
 @DirtiesContext
 public class DiscountServiceTest {
+    private static Event event;
+
     @Autowired
     private DiscountService discountService;
 
-    private static Event event;
-    private static User user;
+    @Autowired
+    private UserService userService;
+
+    private User user;
 
     @BeforeAll
     public static void init() {
@@ -40,7 +46,16 @@ public class DiscountServiceTest {
         timetable.put(LocalDateTime.of(2020, 5, 5, 12, 0), auditorium);
         timetable.put(LocalDateTime.of(2020, 4, 5, 12, 0), auditorium);
         event = new Event("some event", timetable, 200, Rating.MID);
-        user = new User("Ivan", "Ivanich", "ivan@ivanich.ru", LocalDate.of(1988, 4, 4));
+    }
+
+    @BeforeEach
+    public void initUser() {
+        user = userService.add(new User("Ivan", "Ivanich", "ivan@ivanich.ru", LocalDate.of(1988, 4, 4)));
+    }
+
+    @AfterEach
+    public void deleteUser() {
+        userService.clear();
     }
 
     @Test

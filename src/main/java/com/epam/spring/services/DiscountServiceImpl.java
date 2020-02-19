@@ -23,7 +23,7 @@ public class DiscountServiceImpl implements DiscountService {
     @Override
     public DiscountStrategy getDiscount(Event event, LocalDateTime dateTime, User user, Set<Integer> seats) {
         int discount = 0;
-        DiscountStrategy resultingStrategy = NoDiscountStrategy.getInstance(); // just for the sake of the task with aspects
+        DiscountStrategy resultingStrategy = NoDiscountStrategy.instance(); // just for the sake of the task with aspects
         for (DiscountStrategy strategy: discountStrategies) {
             if (strategy.isEligible(user, seats.size(), dateTime)) {
                 int newDiscount = strategy.getEffectiveDiscount(event.getEventTimetable().get(dateTime), seats);

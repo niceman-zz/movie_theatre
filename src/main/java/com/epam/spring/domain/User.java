@@ -7,21 +7,24 @@ public class User {
     private Long id;
     private String firstName;
     private String lastName;
+    private String email;
     private LocalDate birthday;
     private Set<Ticket> tickets;
     private List<String> luckyWinnerMessages;
     private boolean lucky;
 
-    public User(String firstName, String lastName, String email, LocalDate birthday) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.birthday = birthday;
+    public User() {
         tickets = new HashSet<>();
         luckyWinnerMessages = new ArrayList<>();
     }
 
-    private String email;
+    public User(String firstName, String lastName, String email, LocalDate birthday) {
+        this();
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.birthday = birthday;
+    }
 
     public void setId(Long id) {
         this.id = id;

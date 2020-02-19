@@ -1,12 +1,7 @@
 package com.epam.spring.config;
 
-import com.epam.spring.services.AuditoriumService;
-import com.epam.spring.services.AuditoriumServiceImpl;
-import com.epam.spring.services.UserService;
-import com.epam.spring.services.UserServiceImpl;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.*;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
@@ -14,7 +9,7 @@ import java.util.Properties;
 
 @Configuration
 @ComponentScan(basePackages = "com.epam.spring")
-@Import({DiscountsConfig.class})
+@Import({DiscountsConfig.class, DbConfig.class})
 @EnableAspectJAutoProxy
 public class AppConfig {
     @Bean

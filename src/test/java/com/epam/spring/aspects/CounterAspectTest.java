@@ -2,12 +2,11 @@ package com.epam.spring.aspects;
 
 import com.epam.spring.config.AppConfig;
 import com.epam.spring.domain.*;
-import com.epam.spring.services.AuditoriumService;
-import com.epam.spring.services.BookingService;
-import com.epam.spring.services.EventService;
-import com.epam.spring.services.UserService;
+import com.epam.spring.exceptions.AlreadyBookedException;
+import com.epam.spring.services.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +26,14 @@ import static org.hamcrest.Matchers.is;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {AppConfig.class})
 public class CounterAspectTest {
+    private static User user;
+    private static Auditorium auditorium;
+
     @Autowired
     private EventService eventService;
+
+    @Autowired
+    private EventCountersService eventCountersService;
 
     @Autowired
     private BookingService bookingService;
@@ -39,18 +44,20 @@ public class CounterAspectTest {
     @Autowired
     private AuditoriumService auditoriumService;
 
-    private static User user;
-    private static Auditorium auditorium;
-
     @BeforeAll
     public static void init() {
-        user = new User("Putin", "Schmutin", "putin@schmutin.ru", LocalDate.of(1952, 10, 7));
         auditorium = new Auditorium("Big hall", 300, new HashSet<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9)));
+    }
+
+    @BeforeEach
+    public void bootstrap() {
+        user = userService.add(new User("Putin", "Schmutin", "putin@schmutin.ru", LocalDate.of(1952, 10, 7)));
     }
 
     @AfterEach
     public void clean() {
         eventService.clear();
+        userService.clear();
     }
 
     @Test
@@ -59,8 +66,8 @@ public class CounterAspectTest {
         Event notCounted = eventService.save(new Event("Circus", null, 1000.0, Rating.MID));
         Event byName = eventService.getByName("Concert");
         assertThat(byName, is(counted));
-        assertThat(eventService.getEventCount(counted.getName()), is(1));
-        assertThat(eventService.getEventCount(notCounted.getName()), is(0));
+        assertThat(eventCountersService.getNameCounter(counted.getId()), is(1));
+        assertThat(eventCountersService.getNameCounter(notCounted.getId()), is(0));
     }
 
     @Test
@@ -71,16 +78,16 @@ public class CounterAspectTest {
         Event event2 = eventService.save(new Event("Circus", LocalDateTime.now().plusDays(1), auditorium, 1000.0, Rating.MID));
         bookingService.getTicketsPrice(event, event.getEventTimetable().firstKey(), user, seats);
         bookingService.getTicketsPrice(event, event.getEventTimetable().firstKey(), user, seats);
-        assertThat(eventService.getEventChecksCount(event.getName()), is(2));
-        assertThat(eventService.getEventChecksCount(event2.getName()), is(0));
+        assertThat(eventCountersService.getPriceCheckCounter(event.getId()), is(2));
+        assertThat(eventCountersService.getPriceCheckCounter(event2.getId()), is(0));
 
         bookingService.getTicketsPrice(event2, event2.getEventTimetable().firstKey(), user, seats);
-        assertThat(eventService.getEventChecksCount(event.getName()), is(2));
-        assertThat(eventService.getEventChecksCount(event2.getName()), is(1));
+        assertThat(eventCountersService.getPriceCheckCounter(event.getId()), is(2));
+        assertThat(eventCountersService.getPriceCheckCounter(event2.getId()), is(1));
     }
 
     @Test
-    public void testBookingsCounter() {
+    public void testBookingsCounter() throws AlreadyBookedException {
         Event event = eventService.save(new Event("Concert", LocalDateTime.now(), auditorium, 1000.0, Rating.MID));
         Event event2 = eventService.save(new Event("Circus", LocalDateTime.now().plusDays(1), auditorium, 1000.0, Rating.MID));
         Ticket ticket = new Ticket(event, 1, event.getEventTimetable().firstKey(), user);
@@ -90,7 +97,7 @@ public class CounterAspectTest {
         bookingService.bookTickets(Collections.singleton(ticket));
         bookingService.bookTickets(Collections.singleton(ticket2));
         bookingService.bookTickets(Collections.singleton(ticket3));
-        assertThat(eventService.getEventBookings(event.getName()), is(2));
-        assertThat(eventService.getEventBookings(event2.getName()), is(1));
+        assertThat(eventCountersService.getBookCounter(event.getId()), is(2));
+        assertThat(eventCountersService.getBookCounter(event2.getId()), is(1));
     }
 }

@@ -1,6 +1,7 @@
 package com.epam.spring.domain;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -12,6 +13,10 @@ public class Event {
     private SortedMap<LocalDateTime, Auditorium> eventTimetable;
     private double price;
     private Rating rating;
+
+    public Event() {
+        eventTimetable = new TreeMap<>();
+    }
 
     public Event(String name, SortedMap<LocalDateTime, Auditorium> eventTimetable, double price, Rating rating) {
         this.name = name;
@@ -81,5 +86,21 @@ public class Event {
                 ", price=" + price +
                 ", rating=" + rating +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Event event = (Event) o;
+        return Double.compare(event.price, price) == 0 &&
+                Objects.equals(id, event.id) &&
+                Objects.equals(name, event.name) &&
+                rating == event.rating;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, price, rating);
     }
 }

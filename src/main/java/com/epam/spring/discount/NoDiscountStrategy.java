@@ -16,7 +16,7 @@ public class NoDiscountStrategy extends DiscountStrategy {
         return true;
     }
 
-    public static DiscountStrategy getInstance() {
+    public static DiscountStrategy instance() {
         return INSTANCE;
     }
 }

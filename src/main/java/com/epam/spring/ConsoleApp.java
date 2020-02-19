@@ -3,6 +3,7 @@ package com.epam.spring;
 import com.epam.spring.config.AppConfig;
 import com.epam.spring.discount.DiscountStrategy;
 import com.epam.spring.domain.*;
+import com.epam.spring.exceptions.AlreadyBookedException;
 import com.epam.spring.exceptions.MovieTheatreException;
 import com.epam.spring.services.*;
 import org.springframework.context.ApplicationContext;
@@ -34,6 +35,7 @@ public class ConsoleApp {
     final EventService eventService;
     final UserService userService;
     final DiscountService discountService;
+    final EventCountersService eventCountersService;
 
     ConsoleApp(ApplicationContext context) {
         auditoriumService = context.getBean(AuditoriumService.class);
@@ -41,6 +43,7 @@ public class ConsoleApp {
         eventService = context.getBean(EventService.class);
         userService = context.getBean(UserService.class);
         discountService = context.getBean(DiscountService.class);
+        eventCountersService = context.getBean(EventCountersService.class);
     }
 
     public void run() {
@@ -82,7 +85,11 @@ public class ConsoleApp {
                 "\t\tBooking\n" +
                 "check-price -- calculates price for tickets\n" +
                 "book-tickets -- book tickets\n" +
-                "check-bookings -- show bookings for some event\n" +
+                "check-bookings -- show bookings for some event\n\n" +
+                "\t\tAspects\n" +
+                "event-name-counter -- show how many times an event was accessed by name\n" +
+                "event-price-check-counter -- show how many times event's price was queried\n" +
+                "event-booked-counter -- show how many times tickets for event were bought\n" +
                 "check-discounts -- show discounts that were applied during tickets price calculation";
     }
 
@@ -106,6 +113,9 @@ public class ConsoleApp {
             case "next-events": showNextEvents(); break;
             case "check-price": case "book-tickets": checkPrice(); break;
             case "check-bookings": checkBookings(); break;
+            case "event-name-counter": showEventNameCounter(); break;
+            case "event-price-check-counter": showEventCheckPriceCounter(); break;
+            case "event-booked-counter": showEventBookedCounter(); break;
             case "check-discounts": checkDiscounts(); break;
             case "menu": System.out.println(mainMenu()); break;
             case "exit": exit();
@@ -193,11 +203,11 @@ public class ConsoleApp {
                     return;
                 }
                 User user = userService.getById(userId);
-                if (user == null) {
-                    System.out.println("There's no user with ID " + userId + ". Try again");
+                if (user != null) {
+                    System.out.println(user);
+                    return;
                 }
-                System.out.println(user);
-                return;
+                System.out.println("There's no user with ID " + userId + ". Try again");
             } catch (InputMismatchException e) {
                 scanner.nextLine();
                 System.out.println("User ID must consist of digits only. Try again");
@@ -521,21 +531,33 @@ public class ConsoleApp {
         if (user == null) {
             return;
         }
-        Set<Integer> seats = getSeats();
-        if (seats == null) {
-            return;
-        }
-        double price = bookingService.getTicketsPrice(event, date, user, seats);
-        System.out.println("Price details:");
-        System.out.println("Event: " + event.getName());
-        System.out.println("Date: " + date);
-        System.out.println("User: " + user.getFullName());
-        System.out.println("Seats: " + seats);
-        System.out.println("--------------------------");
-        System.out.println("Total price: " + price);
-        System.out.println();
-        if (confirmAction(String.format("Would you like to book %s?", seats.size() == 1 ? "a ticket" : "these tickets"))) {
-            bookTickets(event, date, user, seats);
+        while (true) {
+            Set<Integer> seats = getSeats();
+            if (seats == null) {
+                return;
+            }
+            double price = bookingService.getTicketsPrice(event, date, user, seats);
+            System.out.println("Price details:");
+            System.out.println("Event: " + event.getName());
+            System.out.println("Date: " + date);
+            System.out.println("User: " + user.getFullName());
+            System.out.println("Seats: " + seats);
+            System.out.println("--------------------------");
+            System.out.println("Total price: " + price);
+            System.out.println();
+            if (confirmAction(String.format("Would you like to book %s?", seats.size() == 1 ? "a ticket" : "these tickets"))) {
+                try {
+                    bookTickets(event, date, user, seats);
+                    return;
+                } catch (AlreadyBookedException e) {
+                    System.out.println(e.getMessage());
+                    if (!confirmAction("Would you like to enter other seats?")) {
+                        return;
+                    }
+                }
+            } else {
+                return;
+            }
         }
     }
 
@@ -637,7 +659,7 @@ public class ConsoleApp {
         } while (true);
     }
 
-    private void bookTickets(Event event, LocalDateTime date, User user, Set<Integer> seats) {
+    private void bookTickets(Event event, LocalDateTime date, User user, Set<Integer> seats) throws AlreadyBookedException {
         Set<Ticket> tickets = new HashSet<>();
         seats.forEach(seat -> tickets.add(new Ticket(event, seat, date, user)));
         bookingService.bookTickets(tickets);
@@ -679,6 +701,33 @@ public class ConsoleApp {
             }
             System.out.println("Wrong input! Enter 'y' to confirm the action or 'n' to cancel.");
         } while (true);
+    }
+
+    private void showEventNameCounter() {
+        Event event = getEventFromInput();
+        if (event == null) {
+            return;
+        }
+        int counter = eventCountersService.getNameCounter(event.getId());
+        System.out.println("'" + event.getName() + "' was accessed by name " + counter + " time(s)");
+    }
+
+    private void showEventCheckPriceCounter() {
+        Event event = getEventFromInput();
+        if (event == null) {
+            return;
+        }
+        int counter = eventCountersService.getPriceCheckCounter(event.getId());
+        System.out.println("Prices for '" + event.getName() + "' were checked " + counter + " time(s)");
+    }
+
+    private void showEventBookedCounter() {
+        Event event = getEventFromInput();
+        if (event == null) {
+            return;
+        }
+        int counter = eventCountersService.getBookCounter(event.getId());
+        System.out.println("Tickets to '" + event.getName() + "' were booked " + counter + " time(s)");
     }
 
     private void checkDiscounts() {

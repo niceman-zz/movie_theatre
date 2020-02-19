@@ -2,9 +2,11 @@ package com.epam.spring.services;
 
 import com.epam.spring.config.AppConfig;
 import com.epam.spring.domain.*;
+import com.epam.spring.exceptions.AlreadyBookedException;
 import com.epam.spring.exceptions.MovieTheatreException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,24 +30,30 @@ public class BookingServiceTest {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private EventService eventService;
+
     private static Event event;
     private static Event highRankedEvent;
     private static User user;
 
-    @BeforeAll
-    public static void init() {
+    @BeforeEach
+    public void bootstrap() {
         Auditorium auditorium = new Auditorium("Big hall", 300, new HashSet<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9)));
         TreeMap<LocalDateTime, Auditorium> timetable = new TreeMap<>();
         timetable.put(LocalDateTime.of(2020, 5, 5, 12, 0), auditorium);
         timetable.put(LocalDateTime.of(2020, 4, 22, 12, 0), auditorium); // never booked
         timetable.put(LocalDateTime.of(2020, 4, 5, 12, 0), auditorium);
-        event = new Event("some event", timetable, 200, Rating.MID);
-        highRankedEvent = new Event("Event with huge ratings", timetable, 1000, Rating.HIGH);
-        user = new User("Ivan", "Ivanich", "ivan@ivanich.ru", LocalDate.of(1988, 4, 4));
+
+        event = eventService.save(new Event("some event", timetable, 200, Rating.MID));
+        highRankedEvent = eventService.save(new Event("Event with huge ratings", timetable, 1000, Rating.HIGH));
+        user = userService.add(new User("Ivan", "Ivanich", "ivan@ivanich.ru", LocalDate.of(1988, 4, 4)));
     }
 
     @AfterEach
     public void clear() {
+        userService.clear();
+        eventService.clear();
         bookingService.clear();
     }
 
@@ -125,7 +133,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    public void shouldNotReturnTicketsWhenNotBookedOnParticularTime() {
+    public void shouldNotReturnTicketsWhenNotBookedOnParticularTime() throws AlreadyBookedException {
         Ticket tkt1 = new Ticket(event, 9, event.getEventTimetable().firstKey(), user);
         Ticket tkt2 = new Ticket(event, 19, event.getEventTimetable().lastKey(), user);
         bookingService.bookTickets(new HashSet<>(Arrays.asList(tkt1, tkt2)));
@@ -142,7 +150,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    public void shouldReturnBookedTicketsForEvent() {
+    public void shouldReturnBookedTicketsForEvent() throws AlreadyBookedException {
         Ticket tkt1 = new Ticket(event, 1, event.getEventTimetable().firstKey(), user);
         bookingService.bookTickets(Collections.singleton(tkt1));
         List<Ticket> bookedTicket =
@@ -158,25 +166,18 @@ public class BookingServiceTest {
     }
 
     @Test
-    public void usersShouldHaveTicketAfterTheyBookedIt() {
-        User user = userService.add(new User("Kamaz", "Othodov", "kamaz@othodov.net", LocalDate.of(1983, 4, 4)));
-        User copy = new User(user.getFirstName(), user.getLastName(), user.getEmail(), user.getBirthday());
-        copy.setId(user.getId());
-        Event newEvent = new Event("Gala", LocalDateTime.now().plusDays(1),
-                event.getEventTimetable().values().iterator().next(), 100, Rating.MID);
-        Ticket ticket = new Ticket(newEvent, 1, newEvent.getEventTimetable().firstKey(), copy);
+    public void usersShouldHaveTicketAfterTheyBookedIt() throws AlreadyBookedException {
+        Ticket ticket = new Ticket(event, 1, event.getEventTimetable().firstKey(), user);
 
         bookingService.bookTickets(Collections.singleton(ticket));
-        assertThat(user == copy, is(false));  // these are not same instances
-        assertThat(user.equals(copy), is(true)); // but they're equal
         assertThat(user.getTickets(), not(empty()));
         assertThat(user.getTickets().iterator().next(), is(ticket));
-        assertThat(user.getTickets().equals(copy.getTickets()), is(true));
+        assertThat(user.getTickets().equals(user.getTickets()), is(true));
         userService.clear();
     }
 
     @Test
-    public void shouldNotAllowBookAlreadyBookedTickets() {
+    public void shouldNotAllowBookAlreadyBookedTickets() throws AlreadyBookedException {
         LocalDateTime time = event.getEventTimetable().firstKey();
         Ticket tkt1 = new Ticket(event, 1, time, user);
         Ticket tkt2 = new Ticket(event, 2, time, user);
@@ -185,7 +186,7 @@ public class BookingServiceTest {
         Ticket tkt3 = new Ticket(event, 2, time, user);
         Ticket tkt4 = new Ticket(event, 3, time, user);
 
-        MovieTheatreException exception = assertThrows(MovieTheatreException.class,
+        AlreadyBookedException exception = assertThrows(AlreadyBookedException.class,
                 () -> bookingService.bookTickets(new HashSet<>(Arrays.asList(tkt3, tkt4))));
         assertThat(exception.getMessage().contains("[2]"), is(true));
     }
