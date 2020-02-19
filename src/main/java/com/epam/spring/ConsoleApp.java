@@ -83,6 +83,10 @@ public class ConsoleApp {
                 "check-price -- calculates price for tickets\n" +
                 "book-tickets -- book tickets\n" +
                 "check-bookings -- show bookings for some event\n" +
+                "\t\tAspects\n" +
+                "event-name-counter -- show how many times an event was accessed by name\n" +
+                "event-price-check-counter -- show how many times event's price was queried\n" +
+                "event-booked-counter -- show how many times tickets for event were bought\n" +
                 "check-discounts -- show discounts that were applied during tickets price calculation";
     }
 
@@ -106,6 +110,9 @@ public class ConsoleApp {
             case "next-events": showNextEvents(); break;
             case "check-price": case "book-tickets": checkPrice(); break;
             case "check-bookings": checkBookings(); break;
+            case "event-name-counter": showEventNameCounter(); break;
+            case "event-price-check-counter": showEventCheckPriceCounter(); break;
+            case "event-booked-counter": showEventBookedCounter(); break;
             case "check-discounts": checkDiscounts(); break;
             case "menu": System.out.println(mainMenu()); break;
             case "exit": exit();
@@ -679,6 +686,33 @@ public class ConsoleApp {
             }
             System.out.println("Wrong input! Enter 'y' to confirm the action or 'n' to cancel.");
         } while (true);
+    }
+
+    private void showEventNameCounter() {
+        Event event = getEventFromInput();
+        if (event == null) {
+            return;
+        }
+        int counter = eventService.getEventCount(event.getName());
+        System.out.println("'" + event.getName() + "' was accessed by name " + counter + " time(s)");
+    }
+
+    private void showEventCheckPriceCounter() {
+        Event event = getEventFromInput();
+        if (event == null) {
+            return;
+        }
+        int counter = eventService.getEventChecksCount(event.getName());
+        System.out.println("Prices for '" + event.getName() + "' were checked " + counter + " time(s)");
+    }
+
+    private void showEventBookedCounter() {
+        Event event = getEventFromInput();
+        if (event == null) {
+            return;
+        }
+        int counter = eventService.getEventBookings(event.getName());
+        System.out.println("Tickets to '" + event.getName() + "' were booked " + counter + " time(s)");
     }
 
     private void checkDiscounts() {
